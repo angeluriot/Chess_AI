@@ -4,7 +4,7 @@
 #include "utils.h"
 
 class Computer
-{
+{ 
 	Board virtual_board;
 
 	Move find_move(uint8_t depth, PieceColor color, Move move = Move::no_move);
