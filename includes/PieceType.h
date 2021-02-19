@@ -24,8 +24,8 @@ struct PieceType
 	static PieceType white_pawn;
 	static PieceType black_pawn;
 
-	PieceType();
-	PieceType(Type type, std::list<Position> offsets, bool is_linear, uint16_t value);
+	PieceType(Type type, std::list<Position> offsets, bool is_linear, uint16_t value)
+		: type(type), offsets(offsets), is_linear(is_linear), value(value) {}
 };
 
 PieceType PieceType::rook = PieceType(Rook, { {0, 1}, {0, -1}, {-1, 0}, {1, 0} }, true, 5);

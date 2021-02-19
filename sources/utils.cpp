@@ -2,15 +2,13 @@
 
 uint16_t screen_width;
 
-// Vérifie les évenements
+// Vï¿½rifie les ï¿½venements
 
 void event_check(sf::Event& sf_event, sf::RenderWindow& window, bool& end)
 {
 	while (window.pollEvent(sf_event))
-		switch (sf_event.type)
+		if (sf_event.type == sf::Event::Closed)
 		{
-		case sf::Event::Closed:
-
 			window.close();
 			end = true;
 			return;
@@ -24,7 +22,7 @@ uint32_t random_int(int32_t min, int32_t max)
 	return rand() % (max - min) + min;
 }
 
-// Donne "vrai" avec une probabilité choisie
+// Donne "vrai" avec une probabilitï¿½ choisie
 
 bool rand_probability(const double& probability)
 {

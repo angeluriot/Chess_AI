@@ -9,8 +9,8 @@ struct Move
 
 	static Move no_move;
 
-	Move();
-	Move(Position start, Position target);
+	Move() : start({0, 0}), target({0, 0}) {}
+	Move(Position start, Position target) : start(start), target(target) {}
 };
 
 Move Move::no_move = Move({ -1, -1 }, { -1, -1 });
