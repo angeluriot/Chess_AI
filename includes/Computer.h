@@ -2,6 +2,7 @@
 #define COMPUTER_H
 
 #include "utils.h"
+#include "Board.h"
 
 class Computer
 {
