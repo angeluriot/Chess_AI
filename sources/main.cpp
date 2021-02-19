@@ -7,7 +7,7 @@
 
 // Initialisation de la fenêtre en fonction de l'écran
 
-/*void init_window(sf::RenderWindow& window, std::string project_name)
+void init_window(sf::RenderWindow& window, std::string project_name)
 {
 	uint16_t width;
 	uint16_t height;
@@ -32,11 +32,13 @@
 	icon.loadFromFile("dependencies/resources/icon.png");
 
 	window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
-}*/
+}
 
 // Main
 
 int main()
 {
-	
+	Board board;
+
+	board.update_moves();
 }

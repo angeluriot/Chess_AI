@@ -3,9 +3,15 @@
 #include "Board.h"
 
 Piece::Piece(PieceType& type, PieceColor color, Position pos, Board* board)
-	: type(type), color(color), pos(pos), board(board), enemy_color(color == White ? Black : White) {}
+	: type(type), color(color), pos(pos), board(board), enemy_color(color == White ? Black : White)
+{
+	(*board)[pos] = this;
+}
 Piece::Piece(const Piece& other)
-	: type(other.type), color(other.color), pos(other.pos), board(other.board), enemy_color(other.enemy_color) {}
+	: type(other.type), color(other.color), pos(other.pos), board(other.board), enemy_color(other.enemy_color)
+{
+	(*board)[pos] = this;
+}
 
 Piece& Piece::operator=(const Piece& other)
 {
@@ -55,18 +61,20 @@ std::list<Move>& Piece::generatePawnMoves()
 
 	auto offset = type.offsets.begin();
 	if ((pos + *offset).is_valid() && !(*board)[pos + *offset])
+	{
 		moves.push_back({ pos, pos + *offset });
-	offset++;
+		offset++;
+		if ((pos + *offset).is_valid() && !(*board)[pos + *offset] && ((color == White && pos.y == 6) || (color == Black && pos.y == 1)))
+			moves.push_back({ pos, pos + *offset });
+		offset++;
+	}
 
 	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
 		moves.push_back({ pos, pos + *offset });
 	offset++;
 	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
 		moves.push_back({ pos, pos + *offset });
-	offset++;
 
-	if ((color == White && pos.y == 7) || (color == Black && pos.y == 2))
-		moves.push_back({ pos, pos + *offset });
 	return moves;
 }
 
@@ -80,11 +88,12 @@ std::list<Move>& Piece::generateMoves()
 		Position actual = pos;
 		do
 		{
-			if (!(actual + pos).is_valid() || ((*board)[pos] && (*board)[pos]->color == color))
+			if (!(actual + offset).is_valid() || ((*board)[actual + offset] && (*board)[actual + offset]->color == color))
 				break;
 			moves.push_back({actual, actual + offset});
-			if ((*board)[pos] && (*board)[pos]->color == color)
+			if ((*board)[actual + offset] && (*board)[actual + offset]->color == enemy_color)
 				break;
+			actual = actual + offset;
 		} while (type.is_linear);
 	}
 	return moves;

@@ -79,7 +79,7 @@ uint16_t Board::get_score(PieceColor color)
 void Board::update_moves()
 {
 	for (auto& piece : pieces)
-		piece.generateMoves();
+		piece.generateMoves().size();
 }
 
 void Board::move_piece(Move move)

@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-//#include <SFML/Graphics.hpp>
+#include <SFML/Graphics.hpp>
 #include <cmath>
 #include <random>
 #include <vector>
@@ -23,7 +23,7 @@ extern uint16_t	screen_width;						// Largeur de l'écran
 
 #define		PIECE_NULL static_cast<Piece*>(NULL)
 
-//void		event_check(sf::Event& sf_event, sf::RenderWindow& window, bool& end);
+void		event_check(sf::Event& sf_event, sf::RenderWindow& window, bool& end);
 uint32_t	random_int(int32_t min, int32_t max);
 bool		rand_probability(const double& probability);
 
