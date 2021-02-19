@@ -18,7 +18,7 @@ Board::Board()
 		Piece(PieceType::rook, Black, { 7, 0 }, this),
 
 		Piece(PieceType::black_pawn, Black, { 0, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 1, 1 }, this),
+		Piece(PieceType::black_pawn, Black, { 1, 1 }, this), 
 		Piece(PieceType::black_pawn, Black, { 2, 1 }, this),
 		Piece(PieceType::black_pawn, Black, { 3, 1 }, this),
 		Piece(PieceType::black_pawn, Black, { 4, 1 }, this),

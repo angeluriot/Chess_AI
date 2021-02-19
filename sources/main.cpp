@@ -80,12 +80,11 @@ int main()
 {
 	Board board;
 	sf::RenderWindow window;
-	bool end;
+	init_window(window, "Chess AI");
+	bool end = false;
 	sf::RenderTexture grid_tex;
 	float cell_size = std::min(window.getSize().x, window.getSize().y) / 8.f;
 
-
-	init_window(window, "Chess AI");
 	grid_tex.create(cell_size * 8, cell_size * 8);
 	draw_grid(grid_tex, cell_size);
 
