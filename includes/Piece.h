@@ -5,7 +5,8 @@
 #include "Move.h"
 #include "utils.h"
 #include "Position.h"
-#include "Board.h"
+
+class Board;
 
 enum PieceColor : bool
 {

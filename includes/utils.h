@@ -14,11 +14,11 @@
 
 class Piece;
 
-extern uint16_t	screen_width;						// Largeur de l'écran
+extern uint16_t	screen_width;						// Largeur de l'ï¿½cran
 
-#define		WIDTH	1920							// Largeur de l'écran
-#define		HEIGHT	1080							// Hauteur de l'écran
-#define		RESIZE	((1. / 1920.) * screen_width)	// Coéfficient en fonction de la taille de l'écran
+#define		WIDTH	1920							// Largeur de l'ï¿½cran
+#define		HEIGHT	1080							// Hauteur de l'ï¿½cran
+#define		RESIZE	((1. / 1920.) * screen_width)	// Coï¿½fficient en fonction de la taille de l'ï¿½cran
 
 #define		PIECE_NULL static_cast<Piece*>(NULL)
 

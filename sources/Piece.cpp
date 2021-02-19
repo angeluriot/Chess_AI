@@ -25,7 +25,7 @@ bool Piece::setPos(const Position& position)
 	if (Position::is_valid(position))
 		return false;
 	(*board)[pos] = NULL;
-	this->pos = position;
+	pos = position;
 	(*board)[pos] = this;
 	return true;
 }
