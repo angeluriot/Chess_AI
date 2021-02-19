@@ -2,15 +2,23 @@
 #define BOARD_H
 
 #include "utils.h"
+#include "Piece.h"
 
 class Board
 {
 	std::array<std::array<Piece*, 8>, 8> board;
 	std::list<Piece> pieces;
+	Position en_passant;
 
-	uint16_t get_white_score();
-	uint16_t get_black_score();
-	void operator=(const Board& board);
+	Board();
+	Board(const Board& other);
+
+	void operator=(const Board& other);
+	Piece*& operator[](Position position);
+
+	uint16_t get_score(PieceColor color);
+	void update_moves();
+	void move_piece(Move move);
 };
 
 #endif

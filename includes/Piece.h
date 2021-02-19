@@ -18,14 +18,15 @@ class Piece
 		PieceType& type;
 		const PieceColor color;
 		Position pos;
-		Board& board;
+		Board* board;
+		std::list<Move> moves;
 
 		Piece(PieceType& type, PieceColor color, Position pos, const Board& board);
 		Piece(const Piece& other);
 		Piece& operator=(const Piece& other);
 		virtual ~Piece();
 
-		std::list<Move> generateMoves();
+		std::list<Move>& generateMoves();
 
 		void setPos(const Position& position);
 		void setPos(int8_t x, int8_t y);
