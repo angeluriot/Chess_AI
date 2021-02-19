@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "Piece.h"
+#include "Board.h"
 
 Piece::Piece(PieceType& type, PieceColor color, Position pos, Board* board)
 	: type(type), color(color), pos(pos), board(board), enemy_color(color == White ? Black : White) {}
@@ -18,11 +19,9 @@ Piece& Piece::operator=(const Piece& other)
 
 Piece::~Piece() {}
 
-std::list<Move> generateMoves();
-
 bool Piece::setPos(const Position& position)
 {
-	if (Position::is_valid(position))
+	if (position.is_valid())
 		return false;
 	(*board)[pos] = NULL;
 	pos = position;
@@ -55,14 +54,14 @@ std::list<Move>& Piece::generatePawnMoves()
 	moves.clear();
 
 	auto offset = type.offsets.begin();
-	if (Position::is_valid(pos + *offset) && !(*board)[pos + *offset])
+	if ((pos + *offset).is_valid() && !(*board)[pos + *offset])
 		moves.push_back({ pos, pos + *offset });
 	offset++;
 
-	if (pos + *offset == board->en_passant || (Position::is_valid(pos + *offset) && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
+	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
 		moves.push_back({ pos, pos + *offset });
 	offset++;
-	if (pos + *offset == board->en_passant || (Position::is_valid(pos + *offset) && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
+	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
 		moves.push_back({ pos, pos + *offset });
 	offset++;
 
@@ -81,7 +80,7 @@ std::list<Move>& Piece::generateMoves()
 		Position actual = pos;
 		do
 		{
-			if (!Position::is_valid(actual + pos) || ((*board)[pos] && (*board)[pos]->color == color))
+			if (!(actual + pos).is_valid() || ((*board)[pos] && (*board)[pos]->color == color))
 				break;
 			moves.push_back({actual, actual + offset});
 			if ((*board)[pos] && (*board)[pos]->color == color)

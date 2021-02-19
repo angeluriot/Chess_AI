@@ -11,15 +11,16 @@ struct Position
 
 	Position() : x(0), y(0) {}
 	Position(int8_t x, int8_t y) : x(x), y(y) {}
-	void operator=(std::array<int8_t, 2> arr) { x = arr[0]; y = arr[y]; };
-	Position operator+(Position pos) { return Position(pos.x + x, pos.y + y); }
 
-	static bool is_valid(Position pos)
+	void operator=(std::array<int8_t, 2> arr) { x = arr[0]; y = arr[1]; }
+	Position operator+(const Position& pos) const { return Position(pos.x + x, pos.y + y); }
+	bool operator==(const Position& pos) const { return (x == pos.x && y == pos.y); }
+	bool operator!=(const Position& pos) const { return !(*this == pos); }
+
+	bool is_valid() const
 	{
-		return !(pos.x < 0 || pos.x > 7 || pos.y > 7 || pos.y < 0);
+		return !(x < 0 || x > 7 || y > 7 || y < 0);
 	}
 };
-
-Position Position::invalid = Position(-1, -1);
 
 #endif

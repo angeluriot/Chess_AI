@@ -6,6 +6,8 @@
 
 class Board
 {
+public:
+
 	std::array<std::array<Piece*, 8>, 8> board;
 	std::list<Piece> pieces;
 	Position en_passant;
