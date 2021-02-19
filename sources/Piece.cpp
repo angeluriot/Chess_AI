@@ -62,18 +62,18 @@ std::list<Move>& Piece::generatePawnMoves()
 	auto offset = type.offsets.begin();
 	if ((pos + *offset).is_valid() && !(*board)[pos + *offset])
 	{
-		moves.push_back({ pos, pos + *offset });
+		moves.push_back({ pos, pos + *offset, board });
 		offset++;
 		if ((pos + *offset).is_valid() && !(*board)[pos + *offset] && ((color == White && pos.y == 6) || (color == Black && pos.y == 1)))
-			moves.push_back({ pos, pos + *offset });
+			moves.push_back({ pos, pos + *offset, board });
 		offset++;
 	}
 
 	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
-		moves.push_back({ pos, pos + *offset });
+		moves.push_back({ pos, pos + *offset, board });
 	offset++;
 	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
-		moves.push_back({ pos, pos + *offset });
+		moves.push_back({ pos, pos + *offset, board });
 
 	return moves;
 }
@@ -90,7 +90,7 @@ std::list<Move>& Piece::generateMoves()
 		{
 			if (!(actual + offset).is_valid() || ((*board)[actual + offset] && (*board)[actual + offset]->color == color))
 				break;
-			moves.push_back({actual, actual + offset});
+			moves.push_back({actual, actual + offset, board});
 			if ((*board)[actual + offset] && (*board)[actual + offset]->color == enemy_color)
 				break;
 			actual = actual + offset;

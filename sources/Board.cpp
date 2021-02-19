@@ -45,7 +45,35 @@ Board::Board()
 		Piece(PieceType::rook, White, { 7, 7 }, this)
 		});
 
+	sf::Texture white_pawn; white_pawn.loadFromFile("dependencies/resources/white_pawn.png");
+	sf::Texture white_rook; white_rook.loadFromFile("dependencies/resources/white_rook.png");
+	sf::Texture white_knight; white_knight.loadFromFile("dependencies/resources/white_knight.png");
+	sf::Texture white_bishop; white_bishop.loadFromFile("dependencies/resources/white_bishop.png");
+	sf::Texture white_queen; white_queen.loadFromFile("dependencies/resources/white_queen.png");
+	sf::Texture white_king; white_king.loadFromFile("dependencies/resources/white_king.png");
+	sf::Texture black_pawn; black_pawn.loadFromFile("dependencies/resources/black_pawn.png");
+	sf::Texture black_rook; black_rook.loadFromFile("dependencies/resources/black_rook.png");
+	sf::Texture black_knight; black_knight.loadFromFile("dependencies/resources/black_knight.png");
+	sf::Texture black_bishop; black_bishop.loadFromFile("dependencies/resources/black_bishop.png");
+	sf::Texture black_queen; black_queen.loadFromFile("dependencies/resources/black_queen.png");
+	sf::Texture black_king; black_king.loadFromFile("dependencies/resources/black_king.png");
+
+	std::map<PieceType::Type, sf::Texture> black_sprites = {
+		{ PieceType::Type::Pawn, black_pawn }, { PieceType::Type::Rook, black_rook }, { PieceType::Type::Knight, black_knight },
+		{ PieceType::Type::Bishop, black_bishop }, { PieceType::Type::Queen, black_queen }, { PieceType::Type::King, black_king }
+	};
+
+	std::map<PieceType::Type, sf::Texture> white_sprites = {
+		{ PieceType::Type::Pawn, white_pawn }, { PieceType::Type::Rook, white_rook }, { PieceType::Type::Knight, white_knight },
+		{ PieceType::Type::Bishop, white_bishop }, { PieceType::Type::Queen, white_queen }, { PieceType::Type::King, white_king }
+	};
+
+	sprites = {
+		{ PieceColor::Black, black_sprites }, { PieceColor::White, white_sprites },
+	};
+
 	en_passant = Position::invalid;
+	player_turn = PieceColor::White;
 }
 
 Board::Board(const Board& other)
@@ -64,6 +92,7 @@ void Board::operator=(const Board& other)
 		(*this)[piece.pos] = &piece;
 
 	en_passant = other.en_passant;
+	player_turn = other.player_turn;
 }
 
 Piece*& Board::operator[](Position position)
@@ -76,10 +105,55 @@ uint16_t Board::get_score(PieceColor color)
 	return std::accumulate(pieces.begin(), pieces.end(), uint16_t(), [color](uint16_t sum, Piece& piece) -> uint16_t { return sum + (piece.color == color ? piece.type.value : 0); });
 }
 
+void Board::draw_pieces(sf::RenderWindow& window, float cell_size)
+{
+	sf::RenderTexture tex;
+
+	tex.create(cell_size * 8, cell_size * 8);
+	for (auto& piece : pieces)
+	{
+		sf::Sprite sprite = sf::Sprite(sprites[piece.color][piece.type.type]);
+		sprite.setOrigin({ sprites[piece.color][piece.type.type].getSize().x / 2.f, sprites[piece.color][piece.type.type].getSize().y / 2.f});
+		sprite.setScale(cell_size / static_cast<float>(sprites[piece.color][piece.type.type].getSize().x), cell_size / static_cast<float>(sprites[piece.color][piece.type.type].getSize().y) * -1);
+		sprite.setPosition({cell_size * piece.pos.x + (cell_size / 2.f), cell_size * (7 - piece.pos.y) + (cell_size / 2)});
+		tex.draw(sprite);
+	}
+	sf::Sprite tex_spr(tex.getTexture());
+	tex_spr.setPosition((window.getSize().x - tex.getSize().x) / 2.f, 0);
+	window.draw(tex_spr);
+}
+
 void Board::update_moves()
 {
 	for (auto& piece : pieces)
-		piece.generateMoves().size();
+		if (piece.color == player_turn)
+			piece.generateMoves();
+}
+
+void Board::draw_moves(sf::RenderWindow& window, float cell_size)
+{
+	sf::RectangleShape cell;
+	sf::RenderTexture tex;
+
+	tex.create(cell_size * 8, cell_size * 8);
+
+	cell.setSize({cell_size, cell_size});
+	cell.setFillColor(sf::Color(255, 0, 0, 100));
+
+	update_moves();
+	for (auto& piece : pieces)
+	{
+		if (piece.color != player_turn)
+			continue;
+		for (auto& move : piece.moves)
+		{
+			cell.setPosition({move.target.x * cell_size, (7 - move.target.y) * cell_size });
+			tex.draw(cell);
+		}
+	}
+	sf::Sprite sprite(tex.getTexture());
+	sprite.setPosition({(window.getSize().x - tex.getSize().x) / 2.f, (window.getSize().y - tex.getSize().y) / 2.f});
+	window.draw(sprite);
 }
 
 void Board::move_piece(Move move)

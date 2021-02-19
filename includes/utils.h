@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
 #include <cmath>
 #include <random>
 #include <vector>
