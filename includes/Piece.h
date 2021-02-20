@@ -30,7 +30,7 @@ class Piece
 		Piece(PieceType* type, PieceColor color, Position pos, Board* board);
 		Piece(const Piece& other);
 		virtual ~Piece();
-
+ 
 		Piece& operator=(const Piece& other);
 		bool operator==(const Piece& other);
 

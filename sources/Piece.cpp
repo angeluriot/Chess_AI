@@ -109,4 +109,4 @@ std::list<Move>& Piece::generateMoves()
 		} while (type->is_linear);
 	}
 	return moves;
-}
+} 

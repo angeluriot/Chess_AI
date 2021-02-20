@@ -30,4 +30,4 @@ public:
 	void check_click_on_piece(const sf::RenderWindow& window, float cell_size);
 };
 
-#endif
+#endif 

@@ -11,4 +11,4 @@ bool Move::operator==(const Move& other) const
 bool Move::operator!=(const Move& other) const
 {
 	return !(*this == other);
-}
+} 

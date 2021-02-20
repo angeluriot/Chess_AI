@@ -9,7 +9,7 @@ struct PieceType
 	enum Type
 	{
 		Rook, Bishop, Queen, Knight, King, Pawn
-	};
+	}; 
 
 	Type type;
 	std::list<Position> offsets;

@@ -231,3 +231,4 @@ void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size
 	if ((*this)[cell_pos] && (*this)[cell_pos]->color == player_turn)
 		clicked_cell = cell_pos;
 }
+ 

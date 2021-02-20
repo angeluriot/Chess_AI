@@ -63,4 +63,4 @@ std::pair<Move, float> Computer::find_move(const Board& board, uint8_t depth, Pi
 void Computer::move(Board& board, uint8_t depth)
 {
 	board.move_piece(find_move(board, depth, color).first);
-}
+} 

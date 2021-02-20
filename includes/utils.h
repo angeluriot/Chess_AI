@@ -13,7 +13,7 @@
 #include <functional>
 #include <numeric>
 #include <string>
-
+ 
 class Piece;
 
 extern uint16_t	screen_width;						// Largeur de l'écran
