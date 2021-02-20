@@ -36,29 +36,6 @@ void init_window(sf::RenderWindow& window, std::string project_name)
 	window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 }
 
-size_t count_moves(Board& board, int depth)
-{
-	size_t count = 0;
-
-	if (depth == 0)
-		return 1;
-	for (auto& piece : board.pieces)
-	{
-		if (piece.color == board.player_turn)
-		{
-			for (auto& move : piece.generateMoves())
-			{
-				move.makeMove();
-				board.player_turn = (board.player_turn == PieceColor::White ? PieceColor::Black : PieceColor::White);
-				count += count_moves(board, depth - 1);
-				move.unmakeMove();
-				board.player_turn = (board.player_turn == PieceColor::White ? PieceColor::Black : PieceColor::White);
-			}
-		}
-	}
-	return count;
-}
-
 void draw_grid(sf::RenderTexture& tex, float cell_size)
 {
 	sf::RectangleShape cell;
@@ -84,6 +61,8 @@ int main()
 	sf::RenderTexture grid_tex;
 	float cell_size = std::min(window.getSize().x, window.getSize().y) / 8.f;
 
+	bool space_pressed = false;
+
 	grid_tex.create(cell_size * 8, cell_size * 8);
 	draw_grid(grid_tex, cell_size);
 
@@ -106,12 +85,18 @@ int main()
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
-			if (board.player_turn == White)
-				white_computer.move(board, 1);
+			if (!space_pressed)
+			{
+				if (board.player_turn == White)
+					white_computer.move(board, 1);
 
-			else
-				black_computer.move(board, 1);
+				else
+					black_computer.move(board, 1);
+			}
+			space_pressed = true;
 		}
+		else
+			space_pressed = false;
 
 		board.check_click_on_piece(window, cell_size);
 

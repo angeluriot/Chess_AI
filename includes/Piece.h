@@ -20,14 +20,14 @@ class Piece
 		std::list<Move>& generatePawnMoves();
 
 	public:
-		PieceType& type;
+		PieceType* type;
 		PieceColor color;
 		PieceColor enemy_color;
 		Position pos;
 		Board* board;
 		std::list<Move> moves;
 
-		Piece(PieceType& type, PieceColor color, Position pos, Board* board);
+		Piece(PieceType* type, PieceColor color, Position pos, Board* board);
 		Piece(const Piece& other);
 		virtual ~Piece();
 
