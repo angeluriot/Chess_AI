@@ -22,4 +22,5 @@ Move Computer::find_move(uint8_t depth, PieceColor color, const Move& move)
 
 		return best_move;
 	}
+	return Move::no_move;
 }

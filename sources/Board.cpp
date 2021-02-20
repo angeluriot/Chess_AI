@@ -109,6 +109,7 @@ int16_t Board::move_score(const Move& move)
 {
 	if ((*this)[move.target])
 		return (*this)[move.target]->type.value;
+	return 0;
 }
 
 void Board::draw_pieces(sf::RenderWindow& window, float cell_size)
