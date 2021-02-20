@@ -100,8 +100,8 @@ int main()
 
 		board.draw_pieces(window, cell_size);
 		board.draw_moves(window, cell_size);
-
-		board.check_click_on_piece(window, cell_size);
+		
+		//board.check_click_on_piece(window, cell_size);
 		window.display();
 	}
 }
