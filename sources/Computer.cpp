@@ -7,7 +7,7 @@ Computer::Computer(PieceColor color)
 
 Move Computer::find_move(const Board& board, uint8_t depth, PieceColor color, const Move& move)
 {
-	Board board2 = board;
+	Board board2 = board; 
 
 	if (move != Move::no_move)
 		board2.move_piece(move);
