@@ -112,10 +112,11 @@ uint16_t Board::get_score(PieceColor color)
 	return std::accumulate(pieces.begin(), pieces.end(), uint16_t(), [color](uint16_t sum, Piece& piece) -> uint16_t { return sum + (piece.color == color ? piece.type->value : 0); });
 }
 
-int16_t Board::move_score(const Move& move)
+int16_t Board::move_score(const Move& move, PieceColor color)
 {
 	if ((*this)[move.target])
-		return (*this)[move.target]->type->value;
+		return ((*this)[move.target]->color == color ? -(*this)[move.target]->type->value : (*this)[move.target]->type->value);
+
 	return 0;
 }
 

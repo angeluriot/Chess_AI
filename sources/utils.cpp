@@ -15,6 +15,13 @@ void event_check(sf::Event& sf_event, sf::RenderWindow& window, bool& end)
 		}
 }
 
+// Donne un réel entre min et max
+
+float random_float(float min, float max)
+{
+	return (static_cast<float>(rand()) / static_cast<float>(RAND_MAX)) * (max - min) + min;
+}
+
 // Donne un entier entre min et max
 
 uint32_t random_int(int32_t min, int32_t max)

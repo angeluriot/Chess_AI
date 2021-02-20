@@ -8,12 +8,11 @@ class Computer
 {
 public:
 
-	Board virtual_board;
 	PieceColor color;
 
 	Computer(PieceColor color);
 
-	Move find_move(const Board& board, uint8_t depth, PieceColor color, const Move& move = Move::no_move);
+	std::pair<Move, float> find_move(const Board& board, uint8_t depth, PieceColor color, const Move& move = Move::no_move);
 	void move(Board& board, uint8_t depth);
 };
 

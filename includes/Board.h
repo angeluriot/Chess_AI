@@ -22,7 +22,7 @@ public:
 	Piece*& operator[](Position position);
 
 	uint16_t get_score(PieceColor color);
-	int16_t move_score(const Move& move);
+	int16_t move_score(const Move& move, PieceColor color);
 	void update_moves(PieceColor color);
 	void move_piece(Move move);
 	void draw_pieces(sf::RenderWindow& window, float cell_size);
