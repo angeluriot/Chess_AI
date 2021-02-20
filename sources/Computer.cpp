@@ -16,7 +16,7 @@ std::pair<Move, float> Computer::find_move(const Board& board, uint8_t depth, Pi
 	float max_score = -3000.;
 	Move best_move;
 
-	virtual_board.update_moves(color);
+	virtual_board.generate_moves(color);
 
 	if (depth == 1)
 	{

@@ -8,10 +8,10 @@
 
 class Board;
 
-enum PieceColor : bool
+enum PieceColor : int8_t
 {
-	White,
-	Black
+	White = 1,
+	Black = -1
 };
 
 class Piece

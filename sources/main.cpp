@@ -91,7 +91,7 @@ int main()
 					white_computer.move(board, 3);
 
 				else
-					black_computer.move(board, 3); 
+					black_computer.move(board, 3);
 			}
 
 			space_pressed = true;
