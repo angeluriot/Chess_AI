@@ -13,6 +13,8 @@ Piece::Piece(const Piece& other)
 	(*board)[pos] = this;
 }
 
+Piece::~Piece() {}
+
 Piece& Piece::operator=(const Piece& other)
 {
 	type = other.type;
@@ -20,10 +22,14 @@ Piece& Piece::operator=(const Piece& other)
 	pos = other.pos;
 	board = other.board;
 	enemy_color = other.enemy_color;
+	moves.clear();
 	return *this;
 }
 
-Piece::~Piece() {}
+bool Piece::operator==(const Piece& other)
+{
+	return (board == other.board && pos == other.pos);
+}
 
 bool Piece::setPos(const Position& position)
 {
@@ -31,6 +37,8 @@ bool Piece::setPos(const Position& position)
 		return false;
 	(*board)[pos] = NULL;
 	pos = position;
+	if ((*board)[pos])
+		board->pieces.remove(*((*board)[pos]));
 	(*board)[pos] = this;
 	return true;
 }
@@ -42,7 +50,7 @@ bool Piece::setPos(int8_t x, int8_t y)
 
 bool Piece::move(const Position& offset)
 {
-	return setPos(this->pos + offset);
+	return setPos(pos + offset);
 }
 
 bool Piece::move(int8_t x_offset, int8_t y_offset)

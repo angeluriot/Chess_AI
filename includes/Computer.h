@@ -8,7 +8,8 @@ class Computer
 {
 	Board virtual_board;
 
-	Move find_move(uint8_t depth, PieceColor color, Move move = Move::no_move);
+	Move find_move(uint8_t depth, PieceColor color, const Move& move = Move::no_move);
+	void move(uint8_t depth, PieceColor color);
 };
 
 #endif

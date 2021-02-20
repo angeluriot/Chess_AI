@@ -16,6 +16,9 @@ struct Move
 	Move() : start({0, 0}), target({0, 0}), board(NULL) {}
 	Move(Position start, Position target, Board* board) : start(start), target(target), board(board) {}
 
+	bool operator==(const Move& other) const;
+	bool operator!=(const Move& other) const;
+
 	void makeMove() const;
 	void unmakeMove() const;
 };

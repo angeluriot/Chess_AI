@@ -29,11 +29,12 @@ class Piece
 
 		Piece(PieceType& type, PieceColor color, Position pos, Board* board);
 		Piece(const Piece& other);
-		Piece& operator=(const Piece& other);
 		virtual ~Piece();
 
-		std::list<Move>& generateMoves();
+		Piece& operator=(const Piece& other);
+		bool operator==(const Piece& other);
 
+		std::list<Move>& generateMoves();
 		bool setPos(const Position& position);
 		bool setPos(int8_t x, int8_t y);
 		bool move(const Position& offset);

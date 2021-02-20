@@ -18,7 +18,7 @@ Board::Board()
 		Piece(PieceType::rook, Black, { 7, 0 }, this),
 
 		Piece(PieceType::black_pawn, Black, { 0, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 1, 1 }, this), 
+		Piece(PieceType::black_pawn, Black, { 1, 1 }, this),
 		Piece(PieceType::black_pawn, Black, { 2, 1 }, this),
 		Piece(PieceType::black_pawn, Black, { 3, 1 }, this),
 		Piece(PieceType::black_pawn, Black, { 4, 1 }, this),
@@ -105,6 +105,12 @@ uint16_t Board::get_score(PieceColor color)
 	return std::accumulate(pieces.begin(), pieces.end(), uint16_t(), [color](uint16_t sum, Piece& piece) -> uint16_t { return sum + (piece.color == color ? piece.type.value : 0); });
 }
 
+int16_t Board::move_score(const Move& move)
+{
+	if ((*this)[move.target])
+		return (*this)[move.target]->type.value;
+}
+
 void Board::draw_pieces(sf::RenderWindow& window, float cell_size)
 {
 	sf::RenderTexture tex;
@@ -123,10 +129,10 @@ void Board::draw_pieces(sf::RenderWindow& window, float cell_size)
 	window.draw(tex_spr);
 }
 
-void Board::update_moves()
+void Board::update_moves(PieceColor color)
 {
 	for (auto& piece : pieces)
-		if (piece.color == player_turn)
+		if (piece.color == color)
 			piece.generateMoves();
 }
 
@@ -140,7 +146,7 @@ void Board::draw_moves(sf::RenderWindow& window, float cell_size)
 	cell.setSize({cell_size, cell_size});
 	cell.setFillColor(sf::Color(255, 0, 0, 100));
 
-	update_moves();
+	update_moves(player_turn);
 	for (auto& piece : pieces)
 	{
 		if (piece.color != player_turn)
