@@ -13,6 +13,7 @@ public:
 	Position en_passant;
 	PieceColor player_turn;
 	std::map<PieceColor, std::map<PieceType::Type, sf::Texture>> sprites;
+	Position clicked_cell;
 
 	Board();
 	Board(const Board& other);
@@ -26,6 +27,7 @@ public:
 	void move_piece(Move move);
 	void draw_pieces(sf::RenderWindow& window, float cell_size);
 	void draw_moves(sf::RenderWindow& window, float cell_size);
+	void check_click_on_piece(const sf::RenderWindow& window, float cell_size);
 };
 
 #endif

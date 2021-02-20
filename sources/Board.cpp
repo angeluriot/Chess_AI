@@ -93,6 +93,7 @@ void Board::operator=(const Board& other)
 
 	en_passant = other.en_passant;
 	player_turn = other.player_turn;
+	clicked_cell = Position::invalid;
 }
 
 Piece*& Board::operator[](Position position)
@@ -166,4 +167,37 @@ void Board::draw_moves(sf::RenderWindow& window, float cell_size)
 void Board::move_piece(Move move)
 {
 	(*this)[move.start]->setPos(move.target);
+}
+
+void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size)
+{
+		Position cell_pos =
+		{
+				static_cast<int8_t>((sf::Mouse::getPosition(window).x - (window.getSize().x / 2.f) + (cell_size * 4)) / cell_size),
+				static_cast<int8_t>(sf::Mouse::getPosition(window).y / cell_size)
+		};
+		if (clicked_cell != Position::invalid)
+		{
+				Piece* piece = (*this)[clicked_cell];
+				bool moved = false;
+				for (auto& move : piece->moves)
+				{
+						if (move.target == cell_pos)
+						{
+								move.makeMove();
+								player_turn = (player_turn == PieceColor::Black ? PieceColor::White : PieceColor::Black);
+								moved = true;
+								break;
+						}
+				}
+				if (!moved)
+						clicked_cell = Position::invalid;
+				return;
+		}
+
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+		{
+				if ((*this)[cell_pos] && (*this)[cell_pos]->color == player_turn)
+						clicked_cell = cell_pos;
+		}
 }
