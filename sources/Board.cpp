@@ -7,43 +7,46 @@ Board::Board()
 	for (auto& square : board)
 		std::fill(square.begin(), square.end(), PIECE_NULL);
 
-	pieces.assign({
-		Piece(PieceType::rook, Black, { 0, 0 }, this),
-		Piece(PieceType::knight, Black, { 1, 0 }, this),
-		Piece(PieceType::bishop, Black, { 2, 0 }, this),
-		Piece(PieceType::queen, Black, { 3, 0 }, this),
-		Piece(PieceType::king, Black, { 4, 0 }, this),
-		Piece(PieceType::bishop, Black, { 5, 0 }, this),
-		Piece(PieceType::knight, Black, { 6, 0 }, this),
-		Piece(PieceType::rook, Black, { 7, 0 }, this),
+	pieces = {
+		Piece(&PieceType::rook, Black, { 0, 0 }, this),
+		Piece(&PieceType::knight, Black, { 1, 0 }, this),
+		Piece(&PieceType::bishop, Black, { 2, 0 }, this),
+		Piece(&PieceType::queen, Black, { 3, 0 }, this),
+		Piece(&PieceType::king, Black, { 4, 0 }, this),
+		Piece(&PieceType::bishop, Black, { 5, 0 }, this),
+		Piece(&PieceType::knight, Black, { 6, 0 }, this),
+		Piece(&PieceType::rook, Black, { 7, 0 }, this),
 
-		Piece(PieceType::black_pawn, Black, { 0, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 1, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 2, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 3, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 4, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 5, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 6, 1 }, this),
-		Piece(PieceType::black_pawn, Black, { 7, 1 }, this),
+		Piece(&PieceType::black_pawn, Black, { 0, 1 }, this),
+		Piece(&PieceType::black_pawn, Black, { 1, 1 }, this),
+		Piece(&PieceType::black_pawn, Black, { 2, 1 }, this),
+		Piece(&PieceType::black_pawn, Black, { 3, 1 }, this),
+		Piece(&PieceType::black_pawn, Black, { 4, 1 }, this),
+		Piece(&PieceType::black_pawn, Black, { 5, 1 }, this),
+		Piece(&PieceType::black_pawn, Black, { 6, 1 }, this),
+		Piece(&PieceType::black_pawn, Black, { 7, 1 }, this),
 
-		Piece(PieceType::white_pawn, White, { 0, 6 }, this),
-		Piece(PieceType::white_pawn, White, { 1, 6 }, this),
-		Piece(PieceType::white_pawn, White, { 2, 6 }, this),
-		Piece(PieceType::white_pawn, White, { 3, 6 }, this),
-		Piece(PieceType::white_pawn, White, { 4, 6 }, this),
-		Piece(PieceType::white_pawn, White, { 5, 6 }, this),
-		Piece(PieceType::white_pawn, White, { 6, 6 }, this),
-		Piece(PieceType::white_pawn, White, { 7, 6 }, this),
+		Piece(&PieceType::white_pawn, White, { 0, 6 }, this),
+		Piece(&PieceType::white_pawn, White, { 1, 6 }, this),
+		Piece(&PieceType::white_pawn, White, { 2, 6 }, this),
+		Piece(&PieceType::white_pawn, White, { 3, 6 }, this),
+		Piece(&PieceType::white_pawn, White, { 4, 6 }, this),
+		Piece(&PieceType::white_pawn, White, { 5, 6 }, this),
+		Piece(&PieceType::white_pawn, White, { 6, 6 }, this),
+		Piece(&PieceType::white_pawn, White, { 7, 6 }, this),
 
-		Piece(PieceType::rook, White, { 0, 7 }, this),
-		Piece(PieceType::knight, White, { 1, 7 }, this),
-		Piece(PieceType::bishop, White, { 2, 7 }, this),
-		Piece(PieceType::queen, White, { 3, 7 }, this),
-		Piece(PieceType::king, White, { 4, 7 }, this),
-		Piece(PieceType::bishop, White, { 5, 7 }, this),
-		Piece(PieceType::knight, White, { 6, 7 }, this),
-		Piece(PieceType::rook, White, { 7, 7 }, this)
-		});
+		Piece(&PieceType::rook, White, { 0, 7 }, this),
+		Piece(&PieceType::knight, White, { 1, 7 }, this),
+		Piece(&PieceType::bishop, White, { 2, 7 }, this),
+		Piece(&PieceType::queen, White, { 3, 7 }, this),
+		Piece(&PieceType::king, White, { 4, 7 }, this),
+		Piece(&PieceType::bishop, White, { 5, 7 }, this),
+		Piece(&PieceType::knight, White, { 6, 7 }, this),
+		Piece(&PieceType::rook, White, { 7, 7 }, this)
+	};
+
+	for (auto& piece : pieces)
+		(*this)[piece.pos] = &piece;
 
 	sf::Texture white_pawn; white_pawn.loadFromFile("dependencies/resources/white_pawn.png");
 	sf::Texture white_rook; white_rook.loadFromFile("dependencies/resources/white_rook.png");
@@ -84,6 +87,8 @@ Board::Board(const Board& other)
 void Board::operator=(const Board& other)
 {
 	pieces = other.pieces;
+	for (auto& piece : pieces)
+		piece.board = this;
 
 	for (auto& square : board)
 		std::fill(square.begin(), square.end(), PIECE_NULL);
@@ -94,6 +99,7 @@ void Board::operator=(const Board& other)
 	en_passant = other.en_passant;
 	player_turn = other.player_turn;
 	clicked_cell = Position::invalid;
+	sprites = other.sprites;
 }
 
 Piece*& Board::operator[](Position position)
@@ -103,13 +109,13 @@ Piece*& Board::operator[](Position position)
 
 uint16_t Board::get_score(PieceColor color)
 {
-	return std::accumulate(pieces.begin(), pieces.end(), uint16_t(), [color](uint16_t sum, Piece& piece) -> uint16_t { return sum + (piece.color == color ? piece.type.value : 0); });
+	return std::accumulate(pieces.begin(), pieces.end(), uint16_t(), [color](uint16_t sum, Piece& piece) -> uint16_t { return sum + (piece.color == color ? piece.type->value : 0); });
 }
 
 int16_t Board::move_score(const Move& move)
 {
 	if ((*this)[move.target])
-		return (*this)[move.target]->type.value;
+		return (*this)[move.target]->type->value;
 	return 0;
 }
 
@@ -120,9 +126,9 @@ void Board::draw_pieces(sf::RenderWindow& window, float cell_size)
 	tex.create(cell_size * 8, cell_size * 8);
 	for (auto& piece : pieces)
 	{
-		sf::Sprite sprite = sf::Sprite(sprites[piece.color][piece.type.type]);
-		sprite.setOrigin({ sprites[piece.color][piece.type.type].getSize().x / 2.f, sprites[piece.color][piece.type.type].getSize().y / 2.f});
-		sprite.setScale(cell_size / static_cast<float>(sprites[piece.color][piece.type.type].getSize().x), cell_size / static_cast<float>(sprites[piece.color][piece.type.type].getSize().y) * -1);
+		sf::Sprite sprite = sf::Sprite(sprites[piece.color][piece.type->type]);
+		sprite.setOrigin({ sprites[piece.color][piece.type->type].getSize().x / 2.f, sprites[piece.color][piece.type->type].getSize().y / 2.f});
+		sprite.setScale(cell_size / static_cast<float>(sprites[piece.color][piece.type->type].getSize().x), cell_size / static_cast<float>(sprites[piece.color][piece.type->type].getSize().y) * -1);
 		sprite.setPosition({cell_size * piece.pos.x + (cell_size / 2.f), cell_size * (7 - piece.pos.y) + (cell_size / 2)});
 		tex.draw(sprite);
 	}
