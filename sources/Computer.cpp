@@ -47,7 +47,7 @@ std::pair<Move, float> Computer::find_move(const Board& board, uint8_t depth, Pi
 
 		for (auto& m : piece.moves)
 		{
-			score = virtual_board.move_score(m, color) - find_move(board, depth - 1, (color == White ? Black : White), m).second + random_float(0.1, 0.5);
+			score = virtual_board.move_score(m, color) - find_move(virtual_board, depth - 1, (color == White ? Black : White), m).second + random_float(0.1, 0.5);
 
 			if (max_score < score)
 			{

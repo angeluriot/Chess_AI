@@ -81,17 +81,17 @@ int main()
 		window.draw(grid_spr);
 
 		board.draw_pieces(window, cell_size);
-		board.draw_moves(window, cell_size);
+		//board.draw_moves(window, cell_size);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
 			if (!space_pressed)
 			{
 				if (board.player_turn == White)
-					white_computer.move(board, 2);
+					white_computer.move(board, 3);
 
 				else
-					black_computer.move(board, 1);
+					black_computer.move(board, 3);
 			}
 
 			space_pressed = true;
