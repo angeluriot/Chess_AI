@@ -1,5 +1,10 @@
 #include "Computer.h"
 
+Computer::Computer(PieceColor color)
+{
+	this->color = color;
+}
+
 Move Computer::find_move(uint8_t depth, PieceColor color, const Move& move)
 {
 	if (move != Move::no_move)
@@ -22,5 +27,13 @@ Move Computer::find_move(uint8_t depth, PieceColor color, const Move& move)
 
 		return best_move;
 	}
+
 	return Move::no_move;
+}
+
+void Computer::move(Board& board, uint8_t depth)
+{
+	virtual_board = board;
+
+	board.move_piece(find_move(depth, color));
 }

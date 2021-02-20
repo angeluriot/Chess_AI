@@ -78,7 +78,6 @@ void draw_grid(sf::RenderTexture& tex, float cell_size)
 
 int main()
 {
-	Board board;
 	sf::RenderWindow window;
 	init_window(window, "Chess AI");
 	bool end = false;
@@ -91,6 +90,10 @@ int main()
 	sf::Sprite grid_spr(grid_tex.getTexture());
 	grid_spr.setPosition({(window.getSize().x - grid_tex.getSize().x) / 2.f, (window.getSize().y - grid_tex.getSize().y) / 2.f});
 
+	Board board;
+	Computer white_computer(White);
+	Computer black_computer(Black);
+
 	sf::Event event;
 	while(!end)
 	{
@@ -100,6 +103,15 @@ int main()
 
 		board.draw_pieces(window, cell_size);
 		board.draw_moves(window, cell_size);
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+		{
+			if (board.player_turn == White)
+				white_computer.move(board, 1);
+
+			else
+				black_computer.move(board, 1);
+		}
 		
 		//board.check_click_on_piece(window, cell_size);
 		window.display();
