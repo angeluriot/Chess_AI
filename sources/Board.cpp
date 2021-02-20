@@ -174,6 +174,8 @@ void Board::move_piece(Move move)
 {
 	(*this)[move.start]->setPos(move.target);
 	player_turn = (player_turn == PieceColor::Black ? PieceColor::White : PieceColor::Black);
+	for (auto& piece : pieces)
+		piece.moves.clear();
 }
 
 void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size)

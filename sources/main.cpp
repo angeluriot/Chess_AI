@@ -88,10 +88,10 @@ int main()
 			if (!space_pressed)
 			{
 				if (board.player_turn == White)
-					white_computer.move(board, 1);
+					white_computer.move(board, 2);
 
 				else
-					black_computer.move(board, 1);
+					black_computer.move(board, 2);
 			}
 			space_pressed = true;
 		}
