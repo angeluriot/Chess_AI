@@ -13,7 +13,7 @@ void event_check(sf::Event& sf_event, sf::RenderWindow& window, bool& end)
 			end = true;
 			return;
 		}
-} 
+}
 
 // Donne un réel entre min et max
 

@@ -1,3 +1,3 @@
 #include "Position.h"
 
-Position Position::invalid = Position(-1, -1); 
+Position Position::invalid = Position(-1, -1);

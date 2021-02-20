@@ -77,6 +77,8 @@ Board::Board()
 
 	en_passant = Position::invalid;
 	player_turn = PieceColor::White;
+
+	update_moves(player_turn);
 }
 
 Board::Board(const Board& other)
@@ -155,7 +157,6 @@ void Board::draw_moves(sf::RenderWindow& window, float cell_size)
 	cell.setSize({cell_size, cell_size});
 	cell.setFillColor(sf::Color(255, 0, 0, 100));
 
-	update_moves(player_turn);
 	for (auto& piece : pieces)
 	{
 		if (piece.color != player_turn)
@@ -177,6 +178,7 @@ void Board::move_piece(Move move)
 	player_turn = (player_turn == PieceColor::Black ? PieceColor::White : PieceColor::Black);
 	for (auto& piece : pieces)
 		piece.moves.clear();
+	update_moves(player_turn);
 }
 
 void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size)
@@ -231,4 +233,3 @@ void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size
 	if ((*this)[cell_pos] && (*this)[cell_pos]->color == player_turn)
 		clicked_cell = cell_pos;
 }
- 

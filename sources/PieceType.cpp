@@ -7,4 +7,3 @@ PieceType PieceType::knight = PieceType(Knight, { {2, 1}, {2, -1}, {-2, -1}, {-2
 PieceType PieceType::king = PieceType(King, { {0, 1}, {0, -1}, {-1, 0}, {1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1} }, false, 1000);
 PieceType PieceType::white_pawn = PieceType(Pawn, { {0, -1}, {0, -2}, {1, -1}, {-1, -1} }, false, 1);
 PieceType PieceType::black_pawn = PieceType(Pawn, { {0, 1}, {0, 2}, {1, 1}, {-1, 1} }, false, 1);
- 
