@@ -112,8 +112,9 @@ int main()
 			else
 				black_computer.move(board, 1);
 		}
-		
-		//board.check_click_on_piece(window, cell_size);
+
+		board.check_click_on_piece(window, cell_size);
+
 		window.display();
 	}
 }

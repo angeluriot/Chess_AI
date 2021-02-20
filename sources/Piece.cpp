@@ -31,15 +31,15 @@ bool Piece::operator==(const Piece& other)
 	return (board == other.board && pos == other.pos);
 }
 
-bool Piece::setPos(const Position& position)
+bool Piece::setPos(const Position& new_pos)
 {
-	if (position.is_valid())
+	if (!new_pos.is_valid())
 		return false;
+	if ((*board)[new_pos])
+		board->pieces.remove(*((*board)[new_pos]));
+	(*board)[new_pos] = this;
 	(*board)[pos] = NULL;
-	pos = position;
-	if ((*board)[pos])
-		board->pieces.remove(*((*board)[pos]));
-	(*board)[pos] = this;
+	pos = new_pos;
 	return true;
 }
 
@@ -98,7 +98,7 @@ std::list<Move>& Piece::generateMoves()
 		{
 			if (!(actual + offset).is_valid() || ((*board)[actual + offset] && (*board)[actual + offset]->color == color))
 				break;
-			moves.push_back({actual, actual + offset, board});
+			moves.push_back({pos, actual + offset, board});
 			if ((*board)[actual + offset] && (*board)[actual + offset]->color == enemy_color)
 				break;
 			actual = actual + offset;

@@ -167,37 +167,58 @@ void Board::draw_moves(sf::RenderWindow& window, float cell_size)
 void Board::move_piece(Move move)
 {
 	(*this)[move.start]->setPos(move.target);
+	player_turn = (player_turn == PieceColor::Black ? PieceColor::White : PieceColor::Black);
 }
 
 void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size)
 {
-		Position cell_pos =
-		{
-				static_cast<int8_t>((sf::Mouse::getPosition(window).x - (window.getSize().x / 2.f) + (cell_size * 4)) / cell_size),
-				static_cast<int8_t>(sf::Mouse::getPosition(window).y / cell_size)
-		};
-		if (clicked_cell != Position::invalid)
-		{
-				Piece* piece = (*this)[clicked_cell];
-				bool moved = false;
-				for (auto& move : piece->moves)
-				{
-						if (move.target == cell_pos)
-						{
-								move.makeMove();
-								player_turn = (player_turn == PieceColor::Black ? PieceColor::White : PieceColor::Black);
-								moved = true;
-								break;
-						}
-				}
-				if (!moved)
-						clicked_cell = Position::invalid;
-				return;
-		}
+	static bool clicked_last_frame = false;
 
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+	if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+	{
+		clicked_last_frame = false;
+		return;
+	}
+	if (clicked_last_frame)
+		return;
+	clicked_last_frame = true;
+
+	if ((sf::Mouse::getPosition(window).x - (window.getSize().x / 2.f) + (cell_size * 4)) < 0 || sf::Mouse::getPosition(window).y < 0)
+		return;
+	Position cell_pos =
+	{
+		static_cast<int8_t>((sf::Mouse::getPosition(window).x - (window.getSize().x / 2.f) + (cell_size * 4)) / cell_size),
+		static_cast<int8_t>(sf::Mouse::getPosition(window).y / cell_size)
+	};
+	if (!cell_pos.is_valid())
+		return;
+
+	if (clicked_cell != Position::invalid)
+	{
+		Piece* piece = (*this)[clicked_cell];
+		bool moved = false;
+		for (auto& move : piece->moves)
 		{
-				if ((*this)[cell_pos] && (*this)[cell_pos]->color == player_turn)
-						clicked_cell = cell_pos;
+			if (move.target == cell_pos)
+			{
+				move_piece(move);
+				moved = true;
+				break;
+			}
 		}
+		clicked_cell = Position::invalid;
+
+		for (int i = 0; i < board.size(); i++)
+		{
+			for (int j = 0; j < board[i].size(); j++)
+				std::cout << (board[j][i] ? "o" : ".");
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+
+		return;
+	}
+
+	if ((*this)[cell_pos] && (*this)[cell_pos]->color == player_turn)
+		clicked_cell = cell_pos;
 }
