@@ -202,7 +202,7 @@ void Board::move_piece(Move move)
 
 	if (abs(board[move.start.x][move.start.y]) == Piece_type::White_pawn && abs(move.target.y - move.start.y) > 1)
 		en_passant = Position(move.start.x, move.start.y + (move.target.y - move.start.y) / 2);
-	else
+	else 
 		en_passant = Position::invalid;
 
 	board[move.target.x][move.target.y] = board[move.start.x][move.start.y];
