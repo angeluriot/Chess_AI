@@ -20,9 +20,7 @@ Board::Board()
 	// On met des cases vides partout sur les cases valides
 	for (uint8_t i = 2; i < 10; i++)
 		for (uint8_t j = 4; j < 8; j++)
-		{
 			board[i][j] = Piece_type::No_piece;
-		}
 
 	// Placement des pions
 	for (uint8_t i = 2; i < 10; i++)
@@ -50,25 +48,6 @@ Board::Board()
 	board[8][9] = White_knight;
 	board[9][9] = White_rook;
 
-	sf::Texture white_pawn; white_pawn.loadFromFile("dependencies/resources/white_pawn.png");
-	sf::Texture white_rook; white_rook.loadFromFile("dependencies/resources/white_rook.png");
-	sf::Texture white_knight; white_knight.loadFromFile("dependencies/resources/white_knight.png");
-	sf::Texture white_bishop; white_bishop.loadFromFile("dependencies/resources/white_bishop.png");
-	sf::Texture white_queen; white_queen.loadFromFile("dependencies/resources/white_queen.png");
-	sf::Texture white_king; white_king.loadFromFile("dependencies/resources/white_king.png");
-	sf::Texture black_pawn; black_pawn.loadFromFile("dependencies/resources/black_pawn.png");
-	sf::Texture black_rook; black_rook.loadFromFile("dependencies/resources/black_rook.png");
-	sf::Texture black_knight; black_knight.loadFromFile("dependencies/resources/black_knight.png");
-	sf::Texture black_bishop; black_bishop.loadFromFile("dependencies/resources/black_bishop.png");
-	sf::Texture black_queen; black_queen.loadFromFile("dependencies/resources/black_queen.png");
-	sf::Texture black_king; black_king.loadFromFile("dependencies/resources/black_king.png");
-
-	textures = {
-		{ Black_pawn, black_pawn }, { Black_rook, black_rook }, { Black_knight, black_knight }, { Black_bishop, black_bishop },
-		{ Black_queen, black_queen }, { Black_king, black_king }, { White_pawn, white_pawn }, { White_rook, white_rook },
-		{ White_knight, white_knight }, { White_bishop, white_bishop }, { White_queen, white_queen }, { White_king, white_king }
-	};
-
 	en_passant = Position::invalid;
 	player_turn = Color::White;
 
@@ -84,7 +63,11 @@ Board::Board()
 
 Board::Board(const Board& other)
 {
-	*this = other;
+	board = other.board;
+	clear_moves();
+	en_passant = other.en_passant;
+	player_turn = other.player_turn;
+	allowed_castle = other.allowed_castle;
 }
 
 void Board::operator=(const Board& other)
@@ -153,7 +136,7 @@ void Board::clear_moves()
 	black_moves.clear();
 }
 
-void Board::handle_castling(Move move)
+void Board::handle_castling(const Move& move)
 {
 	Piece_type piece = board[move.start.x][move.start.y];
 	int8_t abs = std::abs(piece);
@@ -189,7 +172,7 @@ void Board::handle_castling(Move move)
 		allowed_castle[enemy_color][move.target.x == 2 ? 0 : 1] = false;
 }
 
-void Board::move_piece(Move move)
+void Board::move_piece(const Move& move)
 {
 	// Roque
 	handle_castling(move);
@@ -211,7 +194,14 @@ void Board::move_piece(Move move)
 	clear_moves();
 }
 
-void Board::draw_pieces(sf::RenderWindow& window, float cell_size)
+Board& Board::get_moved_board(const Move& move)
+{
+	Board result(*this);
+	result.move_piece(move);
+	return result;
+}
+
+void Board::draw_pieces(sf::RenderWindow& window, std::map<Piece_type, sf::Texture>& textures, float cell_size)
 {
 	sf::RenderTexture tex;
 
@@ -342,7 +332,7 @@ void Board::generate_piece_moves(int8_t x, int8_t y, Color color)
 	}
 }
 
-void Board::draw_moves(sf::RenderWindow& window, float cell_size)
+void Board::draw_moves(sf::RenderWindow& window, std::map<Piece_type, sf::Texture>& textures, float cell_size)
 {
 	sf::RectangleShape cell;
 	sf::RenderTexture tex;

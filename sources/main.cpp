@@ -73,6 +73,25 @@ int main()
 	Computer white_computer(White);
 	Computer black_computer(Black);
 
+	sf::Texture white_pawn; white_pawn.loadFromFile("dependencies/resources/white_pawn.png");
+	sf::Texture white_rook; white_rook.loadFromFile("dependencies/resources/white_rook.png");
+	sf::Texture white_knight; white_knight.loadFromFile("dependencies/resources/white_knight.png");
+	sf::Texture white_bishop; white_bishop.loadFromFile("dependencies/resources/white_bishop.png");
+	sf::Texture white_queen; white_queen.loadFromFile("dependencies/resources/white_queen.png");
+	sf::Texture white_king; white_king.loadFromFile("dependencies/resources/white_king.png");
+	sf::Texture black_pawn; black_pawn.loadFromFile("dependencies/resources/black_pawn.png");
+	sf::Texture black_rook; black_rook.loadFromFile("dependencies/resources/black_rook.png");
+	sf::Texture black_knight; black_knight.loadFromFile("dependencies/resources/black_knight.png");
+	sf::Texture black_bishop; black_bishop.loadFromFile("dependencies/resources/black_bishop.png");
+	sf::Texture black_queen; black_queen.loadFromFile("dependencies/resources/black_queen.png");
+	sf::Texture black_king; black_king.loadFromFile("dependencies/resources/black_king.png");
+
+	std::map<Piece_type, sf::Texture> textures = {
+		{ Black_pawn, black_pawn }, { Black_rook, black_rook }, { Black_knight, black_knight }, { Black_bishop, black_bishop },
+		{ Black_queen, black_queen }, { Black_king, black_king }, { White_pawn, white_pawn }, { White_rook, white_rook },
+		{ White_knight, white_knight }, { White_bishop, white_bishop }, { White_queen, white_queen }, { White_king, white_king }
+	};
+
 	board.generate_moves(board.player_turn);
 	sf::Event event;
 	while(!end)
@@ -81,17 +100,17 @@ int main()
 		window.clear();
 		window.draw(grid_spr);
 
-		board.draw_pieces(window, cell_size);
-		board.draw_moves(window, cell_size);
+		board.draw_pieces(window, textures, cell_size);
+		board.draw_moves(window, textures, cell_size);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
 			if (!space_pressed)
 			{
 				if (board.player_turn == White)
-					white_computer.move(board, 3);
+					white_computer.move(board, 5);
 				else
-					black_computer.move(board, 3);
+					black_computer.move(board, 2);
 			}
 			space_pressed = true;
 		}

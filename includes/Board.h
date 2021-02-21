@@ -33,7 +33,6 @@ public:
 	std::list<Move> black_moves;
 	Position en_passant;
 	Color player_turn;
-	std::map<Piece_type, sf::Texture> textures;
 	std::map<Color, std::array<bool, 2>> allowed_castle;
 	Position clicked_cell;
 
@@ -48,15 +47,16 @@ public:
 	int16_t get_score(Color color);
 	int16_t move_score(const Move& move, Color color);
 	void clear_moves();
-	void move_piece(Move move);
+	void move_piece(const Move& move);
+	Board& get_moved_board(const Move& move);
 	void generate_moves(Color color);
-	void draw_pieces(sf::RenderWindow& window, float cell_size);
-	void draw_moves(sf::RenderWindow& window, float cell_size);
+	void draw_pieces(sf::RenderWindow& window, std::map<Piece_type, sf::Texture>& textures, float cell_size);
+	void draw_moves(sf::RenderWindow& window, std::map<Piece_type, sf::Texture>& textures, float cell_size);
 	void check_click_on_piece(const sf::RenderWindow& window, float cell_size);
 	void generate_piece_moves(int8_t x, int8_t y, Color color);
 	void generate_pawn_moves(int8_t x, int8_t y, Color color);
 	const std::list<Position>& get_offsets(Piece_type type);
-	void handle_castling(Move move);
+	void handle_castling(const Move& move);
 };
 
 #endif
