@@ -1,11 +1,11 @@
 #include "Computer.h"
 
-Computer::Computer(PieceColor color)
+Computer::Computer(Color color)
 {
 	this->color = color;
 }
 
-std::pair<Move, float> Computer::find_move(const Board& board, uint8_t depth, PieceColor color, const Move& move)
+std::pair<Move, float> Computer::find_move(const Board& board, uint8_t depth, Color color, const Move& move)
 {
 	Board virtual_board = board;
 
@@ -20,7 +20,7 @@ std::pair<Move, float> Computer::find_move(const Board& board, uint8_t depth, Pi
 
 	if (depth == 1)
 	{
-		for (auto& piece : virtual_board.pieces)
+		/*for (auto& piece : virtual_board.pieces)
 		{
 			if (piece.color != color)
 				continue;
@@ -35,12 +35,12 @@ std::pair<Move, float> Computer::find_move(const Board& board, uint8_t depth, Pi
 					best_move = m;
 				}
 			}
-		}
+		}*/
 
 		return std::make_pair(best_move, max_score);
 	}
 
-	for (auto& piece : virtual_board.pieces)
+	/*for (auto& piece : virtual_board.pieces)
 	{
 		if (piece.color != color)
 			continue;
@@ -55,7 +55,7 @@ std::pair<Move, float> Computer::find_move(const Board& board, uint8_t depth, Pi
 				best_move = m;
 			}
 		}
-	}
+	}*/
 
 	return std::make_pair(best_move, max_score);
 }

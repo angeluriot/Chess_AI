@@ -73,6 +73,7 @@ int main()
 	Computer white_computer(White);
 	Computer black_computer(Black);
 
+	board.generate_moves(board.player_turn);
 	sf::Event event;
 	while(!end)
 	{
@@ -81,7 +82,7 @@ int main()
 		window.draw(grid_spr);
 
 		board.draw_pieces(window, cell_size);
-		//board.draw_moves(window, cell_size);
+		board.draw_moves(window, cell_size);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
@@ -89,14 +90,11 @@ int main()
 			{
 				if (board.player_turn == White)
 					white_computer.move(board, 3);
-
 				else
 					black_computer.move(board, 3);
 			}
-
 			space_pressed = true;
 		}
-
 		else
 			space_pressed = false;
 

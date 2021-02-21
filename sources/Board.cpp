@@ -2,29 +2,36 @@
 
 Board::Board()
 {
+	// Ajoute les out_of_range sur les bordures
 	for (uint8_t i = 0; i < 2; i++)
-		std::fill(board[i].begin(), board[i].end(), out_of_range);
+		std::fill(board[i].begin(), board[i].end(), Piece_type::Out_of_range);
 
 	for (uint8_t i = 10; i < 12; i++)
-		std::fill(board[i].begin(), board[i].end(), out_of_range);
+		std::fill(board[i].begin(), board[i].end(), Piece_type::Out_of_range);
 
 	for (uint8_t i = 2; i < 10; i++)
 		for (uint8_t j = 0; j < 12; j++)
 		{
-			if (j > 1) j = 10;
-			board[i][j] = out_of_range;
+			// La boucle fait 0 - 1 - 10 - 11
+			if (j == 2) j = 10;
+			board[i][j] = Piece_type::Out_of_range;
 		}
 
+	// On met des cases vides partout sur les cases valides
 	for (uint8_t i = 2; i < 10; i++)
 		for (uint8_t j = 4; j < 8; j++)
-			board[i][j] = no_piece;
+		{
+			board[i][j] = Piece_type::No_piece;
+		}
 
+	// Placement des pions
 	for (uint8_t i = 2; i < 10; i++)
 	{
 		board[i][3] = Black_pawn;
 		board[i][8] = White_pawn;
 	}
 
+	// Placement des pieces
 	board[2][2] = Black_rook;
 	board[3][2] = Black_knight;
 	board[4][2] = Black_bishop;
@@ -56,26 +63,23 @@ Board::Board()
 	sf::Texture black_queen; black_queen.loadFromFile("dependencies/resources/black_queen.png");
 	sf::Texture black_king; black_king.loadFromFile("dependencies/resources/black_king.png");
 
-	std::map<Piece_type, sf::Texture> sprites = {
-		{ Black_pawn, black_pawn },
-		{ Black_rook, black_rook },
-		{ Black_knight, black_knight },
-		{ Black_bishop, black_bishop },
-		{ Black_queen, black_queen },
-		{ Black_king, black_king },
-		{ White_pawn, white_pawn },
-		{ White_rook, white_rook },
-		{ White_knight, white_knight },
-		{ White_bishop, white_bishop },
-		{ White_queen, white_queen },
-		{ White_king, white_king }
+	textures = {
+		{ Black_pawn, black_pawn }, { Black_rook, black_rook }, { Black_knight, black_knight }, { Black_bishop, black_bishop },
+		{ Black_queen, black_queen }, { Black_king, black_king }, { White_pawn, white_pawn }, { White_rook, white_rook },
+		{ White_knight, white_knight }, { White_bishop, white_bishop }, { White_queen, white_queen }, { White_king, white_king }
 	};
 
 	en_passant = Position::invalid;
-	player_turn = PieceColor::White;
+	player_turn = Color::White;
 
 	clear_moves();
-	generate_moves(White);
+
+	allowed_castle = {
+		{ Color::White, {true, true} },
+		{ Color::Black, {true, true} }
+	};
+
+	clicked_cell = Position::invalid;
 }
 
 Board::Board(const Board& other)
@@ -90,6 +94,8 @@ void Board::operator=(const Board& other)
 	black_moves = other.black_moves;
 	en_passant = other.en_passant;
 	player_turn = other.player_turn;
+	allowed_castle = other.allowed_castle;
+	clicked_cell = other.clicked_cell;
 }
 
 Piece_type& Board::operator[](Position position)
@@ -101,35 +107,31 @@ uint16_t Board::get_value(Piece_type piece)
 {
 	switch (abs(piece))
 	{
-	case White_pawn:
+	case Piece_type::White_pawn:
 		return 1;
-
-	case White_knight:
+	case Piece_type::White_knight:
 		return 3;
-
-	case White_bishop:
+	case Piece_type::White_bishop:
 		return 3;
-
-	case White_rook:
+	case Piece_type::White_rook:
 		return 5;
-
-	case White_queen:
+	case Piece_type::White_queen:
 		return 9;
-
-	case White_king:
+	case Piece_type::White_king:
 		return 1000;
-
 	default:
 		return 0;
 	}
 }
 
-PieceColor Board::get_color(Piece_type piece)
+Color Board::get_color(Piece_type piece)
 {
-	return (piece > 0 ? White : Black);
+	if (piece == Piece_type::Out_of_range || piece == Piece_type::No_piece)
+		return Color::Empty;
+	return (piece > 0 ? Color::White : Color::Black);
 }
 
-int16_t Board::get_score(PieceColor color)
+int16_t Board::get_score(Color color)
 {
 	uint16_t score = 0;
 
@@ -140,7 +142,7 @@ int16_t Board::get_score(PieceColor color)
 	return score * color;
 }
 
-int16_t Board::move_score(const Move& move, PieceColor color)
+int16_t Board::move_score(const Move& move, Color color)
 {
 	return (get_color(board[move.target.x][move.target.y]) == color ? -get_value(board[move.target.x][move.target.y]) : get_value(board[move.target.x][move.target.y]));
 }
@@ -151,67 +153,210 @@ void Board::clear_moves()
 	black_moves.clear();
 }
 
+void Board::handle_castling(Move move)
+{
+	Piece_type piece = board[move.start.x][move.start.y];
+	int8_t abs = std::abs(piece);
+	Color enemy_color = get_color(piece) == Color::White ? Color::Black : Color::White;
+
+	if (abs == Piece_type::White_king)
+	{
+		// Grand roque
+		if (move.target.x - move.start.x == -2)
+		{
+			board[5][move.start.y] = board[2][move.start.y];
+			board[2][move.start.y] = Piece_type::No_piece;
+		}
+
+		// Petit roque
+		if (move.target.x - move.start.x == 2)
+		{
+			board[7][move.start.y] = board[9][move.start.y];
+			board[9][move.start.y] = Piece_type::No_piece;
+		}
+	}
+
+	// Si le roi bouge il y a plus de roques
+	if (abs == Piece_type::White_king)
+		allowed_castle[get_color(piece)] = { false, false };
+
+	// Si une tour bouge on désactive un roque
+	if (abs == Piece_type::White_rook && (move.start.x == 2 || move.start.x == 9))
+		allowed_castle[get_color(piece)][move.start.x == 2 ? 0 : 1] = false;
+
+	// Si une tour se fait manger on désactive un roque
+	if (move.target == Position(2, 2) || move.target == Position(2, 9) || move.target == Position(9, 2) || move.target == Position(9, 9))
+		allowed_castle[enemy_color][move.target.x == 2 ? 0 : 1] = false;
+}
+
 void Board::move_piece(Move move)
 {
-	if (abs(board[move.start.x][move.start.y]) == White_pawn && abs(move.target.y - move.start.y) > 1)
-		en_passant = Position(move.start.x, move.start.y + (move.target.y - move.start.y) / 2);
-
 	// Roque
+	handle_castling(move);
 
 	// Prise en passant
+	if (move.target == en_passant && std::abs(board[move.start.x][move.start.y]) == Piece_type::White_pawn)
+	{
+		board[en_passant.x][en_passant.y + get_color(board[move.start.x][move.start.y])] = Piece_type::No_piece;
+	}
+
+	if (abs(board[move.start.x][move.start.y]) == Piece_type::White_pawn && abs(move.target.y - move.start.y) > 1)
+		en_passant = Position(move.start.x, move.start.y + (move.target.y - move.start.y) / 2);
+	else
+		en_passant = Position::invalid;
 
 	board[move.target.x][move.target.y] = board[move.start.x][move.start.y];
-	board[move.start.x][move.start.y] = no_piece;
-
-	player_turn = PieceColor(-1 * player_turn);
+	board[move.start.x][move.start.y] = Piece_type::No_piece;
 
 	clear_moves();
 }
-/*
+
 void Board::draw_pieces(sf::RenderWindow& window, float cell_size)
 {
 	sf::RenderTexture tex;
 
 	tex.create(cell_size * 8, cell_size * 8);
-	for (auto& piece : pieces)
+	for (uint8_t x = 2; x < board.size() - 2; x++)
 	{
-		sf::Sprite sprite = sf::Sprite(sprites[piece.color][piece.type->type]);
-		sprite.setOrigin({ sprites[piece.color][piece.type->type].getSize().x / 2.f, sprites[piece.color][piece.type->type].getSize().y / 2.f});
-		sprite.setScale(cell_size / static_cast<float>(sprites[piece.color][piece.type->type].getSize().x), cell_size / static_cast<float>(sprites[piece.color][piece.type->type].getSize().y) * -1);
-		sprite.setPosition({cell_size * piece.pos.x + (cell_size / 2.f), cell_size * (7 - piece.pos.y) + (cell_size / 2)});
-		tex.draw(sprite);
+		for (uint8_t y = 2; y < board[x].size() - 2; y++)
+		{
+			sf::Sprite sprite = sf::Sprite(textures[board[x][y]]);
+			sprite.setOrigin({ textures[board[x][y]].getSize().x / 2.f, textures[board[x][y]].getSize().y / 2.f});
+			sprite.setScale(cell_size / static_cast<float>(textures[board[x][y]].getSize().x), cell_size / static_cast<float>(textures[board[x][y]].getSize().y) * -1);
+			sprite.setPosition({cell_size * (x - 2) + (cell_size / 2.f), cell_size * (7 - (y - 2)) + (cell_size / 2)});
+			tex.draw(sprite);
+		}
 	}
 	sf::Sprite tex_spr(tex.getTexture());
 	tex_spr.setPosition((window.getSize().x - tex.getSize().x) / 2.f, 0);
 	window.draw(tex_spr);
 }
 
-void Board::generate_moves(PieceColor color)
+void Board::generate_moves(Color color)
 {
-	for (auto& piece : pieces)
-		if (piece.color == color)
-			piece.generateMoves();
+	for (int8_t x = 2; x < 10; x++)
+		for (int8_t y = 2; y < 10; y++)
+			if (get_color(board[x][y]) == color)
+				generate_piece_moves(x, y, color);
+}
+
+const std::list<Position>& Board::get_offsets(Piece_type type)
+{
+	static std::list<Position> white_pawn_off = { {0, -1}, {0, -2}, {1, -1}, {-1, -1} };
+	static std::list<Position> black_pawn_off = { {0, 1}, {0, 2}, {1, 1}, {-1, 1} };
+	static std::list<Position> knight_off = { {2, 1}, {2, -1}, {-2, -1}, {-2, 1}, {1, 2}, {-1, 2}, {-1, -2}, {1, -2} };
+	static std::list<Position> bishop_off = { {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
+	static std::list<Position> rook_off = { {0, 1}, {0, -1}, {-1, 0}, {1, 0} };
+	static std::list<Position> queen_off = { {0, 1}, {0, -1}, {-1, 0}, {1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
+	static std::list<Position> king_off = { {0, 1}, {0, -1}, {-1, 0}, {1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
+
+	int8_t abs = std::abs(type);
+	switch (abs)
+	{
+		case Piece_type::White_pawn:
+			return type == Piece_type::Black_pawn ? black_pawn_off : white_pawn_off;
+		case Piece_type::White_knight:
+			return knight_off;
+		case Piece_type::White_bishop:
+			return bishop_off;
+		case Piece_type::White_rook:
+			return rook_off;
+		case Piece_type::White_queen:
+			return queen_off;
+		case Piece_type::White_king:
+			return king_off;
+		default:
+			return white_pawn_off;
+	}
+	return white_pawn_off;
+}
+
+void Board::generate_pawn_moves(int8_t x, int8_t y, Color color)
+{
+	std::list<Move>& moves = (color == Color::White ? white_moves : black_moves);
+	Color enemy_color = (color == Color::White ? Color::Black : Color::White);
+
+	auto offsets = get_offsets(board[x][y]);
+	auto offset = offsets.begin();
+	Piece_type at_new_pos = board[x + offset->x][y + offset->y];
+
+	if (at_new_pos == Piece_type::No_piece)
+	{
+		moves.push_back({ {x, y}, {static_cast<int8_t>(x + offset->x), static_cast<int8_t>(y + offset->y)}});
+		offset++;
+		at_new_pos = board[x + offset->x][y + offset->y];
+		if (at_new_pos == Piece_type::No_piece && ((color == Color::White && y == 8) || (color == Black && y == 3)))
+			moves.push_back({ {x, y}, {static_cast<int8_t>(x + offset->x), static_cast<int8_t>(y + offset->y)}});
+		offset++;
+	}
+	else
+	{
+		offset++;
+		offset++;
+	}
+	at_new_pos = board[x + offset->x][y + offset->y];
+
+	if (Position(x + offset->x, y + offset->y) == en_passant || (at_new_pos != Piece_type::Out_of_range && at_new_pos != Piece_type::No_piece && get_color(at_new_pos) == enemy_color))
+		moves.push_back({ {x, y}, {static_cast<int8_t>(x + offset->x), static_cast<int8_t>(y + offset->y)}});
+	offset++;
+	at_new_pos = board[x + offset->x][y + offset->y];
+	if (Position(x + offset->x, y + offset->y) == en_passant || (at_new_pos != Piece_type::Out_of_range && at_new_pos != Piece_type::No_piece && get_color(at_new_pos) == enemy_color))
+		moves.push_back({ {x, y}, {static_cast<int8_t>(x + offset->x), static_cast<int8_t>(y + offset->y)}});
+}
+
+void Board::generate_piece_moves(int8_t x, int8_t y, Color color)
+{
+	std::list<Move>& moves = (color == Color::White ? white_moves : black_moves);
+	Color enemy_color = (color == Color::White ? Color::Black : Color::White);
+	int8_t abs = std::abs(board[x][y]);
+
+	if (abs == Piece_type::White_pawn)
+		return generate_pawn_moves(x, y, color);
+
+	bool linear = abs == Piece_type::White_rook || abs == Piece_type::White_bishop || abs == Piece_type::White_queen;
+
+	for (auto& offset : get_offsets(board[x][y]))
+	{
+		Position actual = {x, y};
+		do
+		{
+			Piece_type at_new_pos = board[actual.x + offset.x][actual.y + offset.y];
+			if (at_new_pos == Piece_type::Out_of_range || get_color(at_new_pos) == color)
+				break;
+			moves.push_back({{x, y}, actual + offset});
+			if (get_color(at_new_pos) == enemy_color)
+				break;
+			actual = actual + offset;
+		} while (linear);
+	}
+
+	if (abs == Piece_type::White_king)
+	{
+		// Grand roque
+		if (allowed_castle[color][0] && board[3][y] == Piece_type::No_piece && board[4][y] == Piece_type::No_piece && board[5][y] == Piece_type::No_piece)
+			moves.push_back({ {x, y}, Position(x - 2, y) });
+
+		// Petit roque
+		if (allowed_castle[color][1] && board[7][y] == Piece_type::No_piece && board[8][y] == Piece_type::No_piece)
+			moves.push_back({ {x, y}, Position(x + 2, y) });
+	}
 }
 
 void Board::draw_moves(sf::RenderWindow& window, float cell_size)
 {
 	sf::RectangleShape cell;
 	sf::RenderTexture tex;
+	std::list<Move>& moves = (player_turn == Color::White ? white_moves : black_moves);
 
 	tex.create(cell_size * 8, cell_size * 8);
 
 	cell.setSize({cell_size, cell_size});
 	cell.setFillColor(sf::Color(255, 0, 0, 100));
 
-	for (auto& piece : pieces)
+	for (auto& move : moves)
 	{
-		if (piece.color != player_turn)
-			continue;
-		for (auto& move : piece.moves)
-		{
-			cell.setPosition({move.target.x * cell_size, (7 - move.target.y) * cell_size });
-			tex.draw(cell);
-		}
+		cell.setPosition({(move.target.x - 2) * cell_size, (9 - move.target.y) * cell_size });
+		tex.draw(cell);
 	}
 	sf::Sprite sprite(tex.getTexture());
 	sprite.setPosition({(window.getSize().x - tex.getSize().x) / 2.f, (window.getSize().y - tex.getSize().y) / 2.f});
@@ -243,31 +388,21 @@ void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size
 
 	if (clicked_cell != Position::invalid)
 	{
-		Piece* piece = (*this)[clicked_cell];
-		bool moved = false;
-		for (auto& move : piece->moves)
+		auto& moves = (player_turn == Color::White ? white_moves : black_moves);
+		for (auto& move : moves)
 		{
-			if (move.target == cell_pos)
+			if (move.target == Position(cell_pos.x + 2, cell_pos.y + 2) && move.start == Position(clicked_cell.x + 2, clicked_cell.y + 2))
 			{
 				move_piece(move);
-				moved = true;
+				player_turn = Color(player_turn * -1);
+				generate_moves(player_turn);
 				break;
 			}
 		}
 		clicked_cell = Position::invalid;
-
-		for (int i = 0; i < board.size(); i++)
-		{
-			for (int j = 0; j < board[i].size(); j++)
-				std::cout << (board[j][i] ? "o" : ".");
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-
 		return;
 	}
 
-	if ((*this)[cell_pos] && (*this)[cell_pos]->color == player_turn)
+	if (get_color(board[cell_pos.x + 2][cell_pos.y + 2]) == player_turn)
 		clicked_cell = cell_pos;
 }
-*/

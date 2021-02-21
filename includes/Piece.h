@@ -8,10 +8,11 @@
 
 class Board;
 
-enum PieceColor : int8_t
+enum Color : int8_t
 {
 	White = 1,
-	Black = -1
+	Black = -1,
+	Empty = 0
 };
 
 class Piece
@@ -21,13 +22,13 @@ class Piece
 
 	public:
 		PieceType* type;
-		PieceColor color;
-		PieceColor enemy_color;
+		Color color;
+		Color enemy_color;
 		Position pos;
 		Board* board;
 		std::list<Move> moves;
 
-		Piece(PieceType* type, PieceColor color, Position pos, Board* board);
+		Piece(PieceType* type, Color color, Position pos, Board* board);
 		Piece(const Piece& other);
 		virtual ~Piece();
  

@@ -6,8 +6,8 @@
 
 enum Piece_type : int8_t
 {
-	no_piece = 0,
-	out_of_range = 99,
+	No_piece = 0,
+	Out_of_range = 99,
 
 	White_pawn = 1,
 	White_knight = 2,
@@ -32,7 +32,10 @@ public:
 	std::list<Move> white_moves;
 	std::list<Move> black_moves;
 	Position en_passant;
-	PieceColor player_turn;
+	Color player_turn;
+	std::map<Piece_type, sf::Texture> textures;
+	std::map<Color, std::array<bool, 2>> allowed_castle;
+	Position clicked_cell;
 
 	Board();
 	Board(const Board& other);
@@ -41,15 +44,19 @@ public:
 	Piece_type& operator[](Position position);
 
 	uint16_t get_value(Piece_type piece);
-	PieceColor get_color(Piece_type piece);
-	int16_t get_score(PieceColor color);
-	int16_t move_score(const Move& move, PieceColor color);
+	Color get_color(Piece_type piece);
+	int16_t get_score(Color color);
+	int16_t move_score(const Move& move, Color color);
 	void clear_moves();
 	void move_piece(Move move);
-	void generate_moves(PieceColor color);
+	void generate_moves(Color color);
 	void draw_pieces(sf::RenderWindow& window, float cell_size);
 	void draw_moves(sf::RenderWindow& window, float cell_size);
 	void check_click_on_piece(const sf::RenderWindow& window, float cell_size);
+	void generate_piece_moves(int8_t x, int8_t y, Color color);
+	void generate_pawn_moves(int8_t x, int8_t y, Color color);
+	const std::list<Position>& get_offsets(Piece_type type);
+	void handle_castling(Move move);
 };
 
-#endif 
+#endif

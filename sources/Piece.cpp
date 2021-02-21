@@ -2,7 +2,7 @@
 #include "Piece.h"
 #include "Board.h"
 
-Piece::Piece(PieceType* type, PieceColor color, Position pos, Board* board)
+Piece::Piece(PieceType* type, Color color, Position pos, Board* board)
 	: type(type), color(color), pos(pos), board(board), enemy_color(color == White ? Black : White)
 {
 }
@@ -32,13 +32,14 @@ bool Piece::operator==(const Piece& other)
 
 bool Piece::setPos(const Position& new_pos)
 {
-	if (!new_pos.is_valid())
+	/*if (!new_pos.is_valid())
 		return false;
 	if ((*board)[new_pos])
 		board->pieces.remove(*((*board)[new_pos]));
 	(*board)[new_pos] = this;
 	(*board)[pos] = NULL;
 	pos = new_pos;
+	return true;*/
 	return true;
 }
 
@@ -64,7 +65,7 @@ const Position& Piece::getPos() const
 
 std::list<Move>& Piece::generatePawnMoves()
 {
-	moves.clear();
+/*	moves.clear();
 
 	auto offset = type->offsets.begin();
 	if ((pos + *offset).is_valid() && !((*board)[pos + *offset]))
@@ -86,13 +87,13 @@ std::list<Move>& Piece::generatePawnMoves()
 	offset++;
 	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
 		moves.push_back({ pos, pos + *offset });
-
+*/
 	return moves;
 }
 
 std::list<Move>& Piece::generateMoves()
 {
-	moves.clear();
+/*	moves.clear();
 	if (type->type == PieceType::Type::Pawn)
 		return generatePawnMoves();
 	for (auto& offset : type->offsets)
@@ -108,5 +109,6 @@ std::list<Move>& Piece::generateMoves()
 			actual = actual + offset;
 		} while (type->is_linear);
 	}
+	return moves;*/
 	return moves;
 }
