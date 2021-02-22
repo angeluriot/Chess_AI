@@ -81,7 +81,7 @@ void Board::operator=(const Board& other)
 	clicked_cell = other.clicked_cell;
 }
 
-Piece_type& Board::operator[](Position position)
+Piece_type& Board::operator[](const Position& position)
 {
 	return board[position.x][position.y];
 }
@@ -127,7 +127,7 @@ int16_t Board::get_score(Color color)
 
 int16_t Board::move_score(const Move& move, Color color)
 {
-	return (get_color(board[move.target.x][move.target.y]) == color ? -get_value(board[move.target.x][move.target.y]) : get_value(board[move.target.x][move.target.y]));
+	return (get_color(at(move.target)) == color ? -get_value(at(move.target)) : get_value(at(move.target)));
 }
 
 void Board::clear_moves()
@@ -136,9 +136,13 @@ void Board::clear_moves()
 	black_moves.clear();
 }
 
+void Board::remove_illegal_moves(Color color)
+{
+}
+
 void Board::handle_castling(const Move& move)
 {
-	Piece_type piece = board[move.start.x][move.start.y];
+	Piece_type piece = at(move.start);
 	int8_t abs = std::abs(piece);
 	Color enemy_color = get_color(piece) == Color::White ? Color::Black : Color::White;
 
@@ -178,23 +182,30 @@ void Board::move_piece(const Move& move)
 	handle_castling(move);
 
 	// Prise en passant
-	if (move.target == en_passant && std::abs(board[move.start.x][move.start.y]) == Piece_type::White_pawn)
-	{
-		board[en_passant.x][en_passant.y + get_color(board[move.start.x][move.start.y])] = Piece_type::No_piece;
-	}
+	if (move.target == en_passant && std::abs(at(move.start)) == Piece_type::White_pawn)
+		board[en_passant.x][en_passant.y + get_color(at(move.start))] = Piece_type::No_piece;
 
-	if (abs(board[move.start.x][move.start.y]) == Piece_type::White_pawn && abs(move.target.y - move.start.y) > 1)
+	if (abs(at(move.start)) == Piece_type::White_pawn && abs(move.target.y - move.start.y) > 1)
 		en_passant = Position(move.start.x, move.start.y + (move.target.y - move.start.y) / 2);
 	else
 		en_passant = Position::invalid;
 
-	board[move.target.x][move.target.y] = board[move.start.x][move.start.y];
-	board[move.start.x][move.start.y] = Piece_type::No_piece;
+	at(move.target) = board[move.start.x][move.start.y];
+	at(move.start) = Piece_type::No_piece;
+
+	// Promotion
+	if (std::abs(at(move.target)) == Piece_type::White_pawn && (move.target.y == 9 || move.target.y == 2))
+		at(move.target) = Piece_type(Piece_type::White_queen * get_color(at(move.target)));
 
 	clear_moves();
 }
 
-Board& Board::get_moved_board(const Move& move)
+Piece_type& Board::at(const Position& position)
+{
+	return board[position.x][position.y];
+}
+
+Board Board::get_moved_board(const Move& move)
 {
 	Board result(*this);
 	result.move_piece(move);
@@ -265,18 +276,17 @@ void Board::generate_pawn_moves(int8_t x, int8_t y, Color color)
 {
 	std::list<Move>& moves = (color == Color::White ? white_moves : black_moves);
 	Color enemy_color = (color == Color::White ? Color::Black : Color::White);
+	Position pos = {x, y};
 
-	auto offsets = get_offsets(board[x][y]);
+	auto offsets = get_offsets(at(pos));
 	auto offset = offsets.begin();
-	Piece_type at_new_pos = board[x + offset->x][y + offset->y];
 
-	if (at_new_pos == Piece_type::No_piece)
+	if (at(pos + *offset) == Piece_type::No_piece)
 	{
-		moves.push_back({ {x, y}, {static_cast<int8_t>(x + offset->x), static_cast<int8_t>(y + offset->y)}});
+		moves.push_back({ pos, pos + *offset });
 		offset++;
-		at_new_pos = board[x + offset->x][y + offset->y];
-		if (at_new_pos == Piece_type::No_piece && ((color == Color::White && y == 8) || (color == Black && y == 3)))
-			moves.push_back({ {x, y}, {static_cast<int8_t>(x + offset->x), static_cast<int8_t>(y + offset->y)}});
+		if (at(pos + *offset) == Piece_type::No_piece && ((color == Color::White && y == 8) || (color == Black && y == 3)))
+			moves.push_back({ pos, pos + *offset });
 		offset++;
 	}
 	else
@@ -284,13 +294,12 @@ void Board::generate_pawn_moves(int8_t x, int8_t y, Color color)
 		offset++;
 		offset++;
 	}
-	at_new_pos = board[x + offset->x][y + offset->y];
 
-	if (Position(x + offset->x, y + offset->y) == en_passant || (at_new_pos != Piece_type::Out_of_range && at_new_pos != Piece_type::No_piece && get_color(at_new_pos) == enemy_color))
+	// Offsets de prise en diagonale
+	if (Position(x + offset->x, y + offset->y) == en_passant || (at(pos + *offset) != Piece_type::Out_of_range && at(pos + *offset) != Piece_type::No_piece && get_color(at(pos + *offset)) == enemy_color))
 		moves.push_back({ {x, y}, {static_cast<int8_t>(x + offset->x), static_cast<int8_t>(y + offset->y)}});
 	offset++;
-	at_new_pos = board[x + offset->x][y + offset->y];
-	if (Position(x + offset->x, y + offset->y) == en_passant || (at_new_pos != Piece_type::Out_of_range && at_new_pos != Piece_type::No_piece && get_color(at_new_pos) == enemy_color))
+	if (Position(x + offset->x, y + offset->y) == en_passant || (at(pos + *offset) != Piece_type::Out_of_range && at(pos + *offset) != Piece_type::No_piece && get_color(at(pos + *offset)) == enemy_color))
 		moves.push_back({ {x, y}, {static_cast<int8_t>(x + offset->x), static_cast<int8_t>(y + offset->y)}});
 }
 
@@ -303,18 +312,17 @@ void Board::generate_piece_moves(int8_t x, int8_t y, Color color)
 	if (abs == Piece_type::White_pawn)
 		return generate_pawn_moves(x, y, color);
 
-	bool linear = abs == Piece_type::White_rook || abs == Piece_type::White_bishop || abs == Piece_type::White_queen;
+	bool linear = (abs == Piece_type::White_rook || abs == Piece_type::White_bishop || abs == Piece_type::White_queen);
 
 	for (auto& offset : get_offsets(board[x][y]))
 	{
 		Position actual = {x, y};
 		do
 		{
-			Piece_type at_new_pos = board[actual.x + offset.x][actual.y + offset.y];
-			if (at_new_pos == Piece_type::Out_of_range || get_color(at_new_pos) == color)
+			if (at(actual + offset) == Piece_type::Out_of_range || get_color(at(actual + offset)) == color)
 				break;
 			moves.push_back({{x, y}, actual + offset});
-			if (get_color(at_new_pos) == enemy_color)
+			if (get_color(at(actual + offset)) == enemy_color)
 				break;
 			actual = actual + offset;
 		} while (linear);
@@ -386,6 +394,7 @@ void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size
 				move_piece(move);
 				player_turn = Color(player_turn * -1);
 				generate_moves(player_turn);
+				remove_illegal_moves(player_turn);
 				break;
 			}
 		}

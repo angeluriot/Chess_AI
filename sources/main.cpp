@@ -93,6 +93,7 @@ int main()
 	};
 
 	board.generate_moves(board.player_turn);
+	board.remove_illegal_moves(board.player_turn);
 	sf::Event event;
 	while(!end)
 	{
@@ -101,7 +102,7 @@ int main()
 		window.draw(grid_spr);
 
 		board.draw_pieces(window, textures, cell_size);
-		board.draw_moves(window, textures, cell_size);
+		//board.draw_moves(window, textures, cell_size);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
@@ -110,7 +111,7 @@ int main()
 				if (board.player_turn == White)
 					white_computer.move(board, 5);
 				else
-					black_computer.move(board, 2);
+					black_computer.move(board, 5);
 			}
 			space_pressed = true;
 		}

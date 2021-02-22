@@ -48,4 +48,5 @@ void Computer::move(Board& board, uint8_t depth)
 	board.move_piece(find_move(board, depth, color).first);
 	board.player_turn = Color(board.player_turn * -1);
 	board.generate_moves(board.player_turn);
+	board.remove_illegal_moves(board.player_turn);
 }
