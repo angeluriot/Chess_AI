@@ -1,7 +1,6 @@
 #ifndef PIECE_HPP
 #define PIECE_HPP
 
-#include "PieceType.h"
 #include "Move.h"
 #include "utils.h"
 #include "Position.h"
@@ -15,34 +14,31 @@ enum Color : int8_t
 	Empty = 0
 };
 
-class Piece
+enum Type : int8_t
 {
-	private:
-		std::list<Move>& generatePawnMoves();
+	No_Piece = 0,
+	Out_Of_Range = 99,
 
-	public:
-		PieceType* type;
-		Color color;
-		Color enemy_color;
-		Position pos;
-		Board* board;
-		std::list<Move> moves;
+	White_Pawn = 1,
+	White_Knight = 2,
+	White_Bishop = 3,
+	White_Rook = 4,
+	White_Queen = 5,
+	White_King = 6,
 
-		Piece(PieceType* type, Color color, Position pos, Board* board);
-		Piece(const Piece& other);
-		virtual ~Piece();
- 
-		Piece& operator=(const Piece& other);
-		bool operator==(const Piece& other);
-
-		std::list<Move>& generateMoves();
-		bool setPos(const Position& position);
-		bool setPos(int8_t x, int8_t y);
-		bool move(const Position& offset);
-		bool move(int8_t x_offset, int8_t y_offset);
-		const Position& getPos() const;
-
-
+	Black_Pawn = -1,
+	Black_Knight = -2,
+	Black_Bishop = -3,
+	Black_Rook = -4,
+	Black_Queen = -5,
+	Black_King = -6,
 };
+
+Type get_type_from_fen(char c);
+Color get_color(Type type);
+uint16_t get_value(Type piece);
+int16_t get_score(Color color);
+const std::list<Position>& get_offsets(Type type);
+bool is_linear(Type type);
 
 #endif

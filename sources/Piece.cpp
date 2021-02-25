@@ -1,114 +1,88 @@
-#include "utils.h"
 #include "Piece.h"
-#include "Board.h"
 
-Piece::Piece(PieceType* type, Color color, Position pos, Board* board)
-	: type(type), color(color), pos(pos), board(board), enemy_color(color == White ? Black : White)
+Type get_type_from_fen(char c)
 {
-}
+	char c2 = std::toupper(c);
+	Type ret = Type::No_Piece;
 
-Piece::Piece(const Piece& other)
-	: type(other.type), color(other.color), pos(other.pos), board(other.board), enemy_color(other.enemy_color)
-{
-}
-
-Piece::~Piece() {}
-
-Piece& Piece::operator=(const Piece& other)
-{
-	type = other.type;
-	color = other.color;
-	pos = other.pos;
-	board = other.board;
-	enemy_color = other.enemy_color;
-	moves.clear();
-	return *this;
-}
-
-bool Piece::operator==(const Piece& other)
-{
-	return (board == other.board && pos == other.pos);
-}
-
-bool Piece::setPos(const Position& new_pos)
-{
-	/*if (!new_pos.is_valid())
-		return false;
-	if ((*board)[new_pos])
-		board->pieces.remove(*((*board)[new_pos]));
-	(*board)[new_pos] = this;
-	(*board)[pos] = NULL;
-	pos = new_pos;
-	return true;*/
-	return true;
-}
-
-bool Piece::setPos(int8_t x, int8_t y)
-{
-	return setPos({x, y});
-}
-
-bool Piece::move(const Position& offset)
-{
-	return setPos(pos + offset);
-}
-
-bool Piece::move(int8_t x_offset, int8_t y_offset)
-{
-	return move({x_offset, y_offset});
-}
-
-const Position& Piece::getPos() const
-{
-	return pos;
-}
-
-std::list<Move>& Piece::generatePawnMoves()
-{
-/*	moves.clear();
-
-	auto offset = type->offsets.begin();
-	if ((pos + *offset).is_valid() && !((*board)[pos + *offset]))
+	switch (c2)
 	{
-		moves.push_back({ pos, pos + *offset });
-		offset++;
-		if (!((*board)[pos + *offset]) && ((color == White && pos.y == 6) || (color == Black && pos.y == 1)))
-			moves.push_back({ pos, pos + *offset });
-		offset++;
+		case 'R':
+			ret = Type::White_Rook; break;
+		case 'N':
+			ret = Type::White_Knight; break;
+		case 'B':
+			ret = Type::White_Bishop; break;
+		case 'Q':
+			ret = Type::White_Queen; break;
+		case 'K':
+			ret = Type::White_King; break;
+		case 'P':
+			ret = Type::White_Pawn; break;
 	}
-	else
-	{
-		offset++;
-		offset++;
-	}
-
-	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
-		moves.push_back({ pos, pos + *offset });
-	offset++;
-	if (pos + *offset == board->en_passant || ((pos + *offset).is_valid() && (*board)[pos + *offset] && (*board)[pos + *offset]->color == enemy_color))
-		moves.push_back({ pos, pos + *offset });
-*/
-	return moves;
+	return Type(ret * (std::isupper(c) ? 1 : -1));
 }
 
-std::list<Move>& Piece::generateMoves()
+Color get_color(Type piece)
 {
-/*	moves.clear();
-	if (type->type == PieceType::Type::Pawn)
-		return generatePawnMoves();
-	for (auto& offset : type->offsets)
+	if (piece == Type::Out_Of_Range || piece == Type::No_Piece)
+		return Color::Empty;
+	return (piece > 0 ? Color::White : Color::Black);
+}
+
+uint16_t get_value(Type piece)
+{
+	switch (std::abs(piece))
 	{
-		Position actual = pos;
-		do
-		{
-			if (!(actual + offset).is_valid() || ((*board)[actual + offset] && (*board)[actual + offset]->color == color))
-				break;
-			moves.push_back({pos, actual + offset});
-			if ((*board)[actual + offset] && (*board)[actual + offset]->color == enemy_color)
-				break;
-			actual = actual + offset;
-		} while (type->is_linear);
+	case Type::White_Pawn:
+		return 1;
+	case Type::White_Knight:
+		return 3;
+	case Type::White_Bishop:
+		return 3;
+	case Type::White_Rook:
+		return 5;
+	case Type::White_Queen:
+		return 9;
+	case Type::White_King:
+		return 1000;
+	default:
+		return 0;
 	}
-	return moves;*/
-	return moves;
+}
+
+const std::list<Position>& get_offsets(Type type)
+{
+	static std::list<Position> white_pawn_off = { {0, -1}, {0, -2}, {1, -1}, {-1, -1} };
+	static std::list<Position> black_pawn_off = { {0, 1}, {0, 2}, {1, 1}, {-1, 1} };
+	static std::list<Position> knight_off = { {2, 1}, {2, -1}, {-2, -1}, {-2, 1}, {1, 2}, {-1, 2}, {-1, -2}, {1, -2} };
+	static std::list<Position> bishop_off = { {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
+	static std::list<Position> rook_off = { {0, 1}, {0, -1}, {-1, 0}, {1, 0} };
+	static std::list<Position> queen_off = { {0, 1}, {0, -1}, {-1, 0}, {1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
+	static std::list<Position> king_off = { {0, 1}, {0, -1}, {-1, 0}, {1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1} };
+
+	int8_t abs = std::abs(type);
+	switch (abs)
+	{
+		case Type::White_Pawn:
+			return type == Type::Black_Pawn ? black_pawn_off : white_pawn_off;
+		case Type::White_Knight:
+			return knight_off;
+		case Type::White_Bishop:
+			return bishop_off;
+		case Type::White_Rook:
+			return rook_off;
+		case Type::White_Queen:
+			return queen_off;
+		case Type::White_King:
+				return king_off;
+		default:
+			return white_pawn_off;
+	}
+	return white_pawn_off;
+}
+
+bool is_linear(Type type)
+{
+	return (std::abs(type) == Type::White_Rook || std::abs(type) == Type::White_Bishop || std::abs(type) == Type::White_Queen);
 }

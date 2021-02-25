@@ -11,7 +11,7 @@ public:
 	Color color;
 
 	Computer(Color color);
- 
+
 	std::pair<Move, float> find_move(Board board, uint8_t depth, Color color);
 	void move(Board& board, uint8_t depth);
 };

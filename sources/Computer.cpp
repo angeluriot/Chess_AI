@@ -15,7 +15,7 @@ std::pair<Move, float> Computer::find_move(Board board, uint8_t depth, Color col
 
 	if (depth == 1)
 	{
-		for (auto& move : (color == White ? board.white_moves : board.black_moves))
+		for (auto& move : (color == Color::White ? board.white_moves : board.black_moves))
 		{
 			score = board.move_score(move, color) + random_float(0.001, 0.005);
 
@@ -29,9 +29,9 @@ std::pair<Move, float> Computer::find_move(Board board, uint8_t depth, Color col
 		return std::make_pair(best_move, max_score);
 	}
 
-	for (auto& move : (color == White ? board.white_moves : board.black_moves))
+	for (auto& move : (color == Color::White ? board.white_moves : board.black_moves))
 	{
-		score = board.move_score(move, color) - find_move(board.get_moved_board(move), depth - 1, (color == White ? Black : White)).second + random_float(0.001, 0.005);
+		score = board.move_score(move, color) - find_move(board.get_moved_board(move), depth - 1, (color == Color::White ? Color::Black : Color::White)).second + random_float(0.001, 0.005);
 
 		if (max_score < score)
 		{

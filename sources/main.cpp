@@ -1,4 +1,3 @@
-#include "PieceType.h"
 #include "utils.h"
 #include "Move.h"
 #include "Piece.h"
@@ -69,9 +68,9 @@ int main()
 	sf::Sprite grid_spr(grid_tex.getTexture());
 	grid_spr.setPosition({(window.getSize().x - grid_tex.getSize().x) / 2.f, (window.getSize().y - grid_tex.getSize().y) / 2.f});
 
-	Board board;
-	Computer white_computer(White);
-	Computer black_computer(Black);
+	Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	Computer white_computer(Color::White);
+	Computer black_computer(Color::Black);
 
 	sf::Texture white_pawn; white_pawn.loadFromFile("dependencies/resources/white_pawn.png");
 	sf::Texture white_rook; white_rook.loadFromFile("dependencies/resources/white_rook.png");
@@ -86,10 +85,10 @@ int main()
 	sf::Texture black_queen; black_queen.loadFromFile("dependencies/resources/black_queen.png");
 	sf::Texture black_king; black_king.loadFromFile("dependencies/resources/black_king.png");
 
-	std::map<Piece_type, sf::Texture> textures = {
-		{ Black_pawn, black_pawn }, { Black_rook, black_rook }, { Black_knight, black_knight }, { Black_bishop, black_bishop },
-		{ Black_queen, black_queen }, { Black_king, black_king }, { White_pawn, white_pawn }, { White_rook, white_rook },
-		{ White_knight, white_knight }, { White_bishop, white_bishop }, { White_queen, white_queen }, { White_king, white_king }
+	std::map<Type, sf::Texture> textures = {
+		{ Type::Black_Pawn, black_pawn }, { Type::Black_Rook, black_rook }, { Type::Black_Knight, black_knight }, { Type::Black_Bishop, black_bishop },
+		{ Type::Black_Queen, black_queen }, { Type::Black_King, black_king }, { Type::White_Pawn, white_pawn }, { Type::White_Rook, white_rook },
+		{ Type::White_Knight, white_knight }, { Type::White_Bishop, white_bishop }, { Type::White_Queen, white_queen }, { Type::White_King, white_king }
 	};
 
 	board.generate_moves(board.player_turn);
@@ -103,12 +102,13 @@ int main()
 
 		board.draw_pieces(window, textures, cell_size);
 		//board.draw_moves(window, textures, cell_size);
+		board.draw_pins(window, textures, cell_size);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
 			if (!space_pressed)
 			{
-				if (board.player_turn == White)
+				if (board.player_turn == Color::White)
 					white_computer.move(board, 5);
 				else
 					black_computer.move(board, 5);

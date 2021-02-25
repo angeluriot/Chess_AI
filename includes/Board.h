@@ -4,63 +4,53 @@
 #include "utils.h"
 #include "Piece.h"
 
-enum Piece_type : int8_t
-{
-	No_piece = 0,
-	Out_of_range = 99,
-
-	White_pawn = 1,
-	White_knight = 2,
-	White_bishop = 3,
-	White_rook = 4,
-	White_queen = 5,
-	White_king = 6,
-
-	Black_pawn = -1,
-	Black_knight = -2,
-	Black_bishop = -3,
-	Black_rook = -4,
-	Black_queen = -5,
-	Black_king = -6,
-};
-
 class Board
 {
 public:
 
-	std::array<std::array<Piece_type, 12>, 12> board;
+	std::array<std::array<Type, 12>, 12> board;
 	std::list<Move> white_moves;
 	std::list<Move> black_moves;
+	std::map<Position, std::list<Move>> pins;
 	Position en_passant;
 	Color player_turn;
 	std::map<Color, std::array<bool, 2>> allowed_castle;
 	Position clicked_cell;
 
-	Board();
+	Board(const std::string& fen);
 	Board(const Board& other);
 
 	void operator=(const Board& other);
-	Piece_type& operator[](const Position& position);
-	inline Piece_type& at(const Position& position);
+	Type& operator[](const Position& position);
+	inline Type& at(const Position& position);
 
-	uint16_t get_value(Piece_type piece);
-	Color get_color(Piece_type piece);
+	inline std::list<Move>& get_player_moves();
+	inline std::list<Move>& get_enemy_moves();
+
+	void init_board(const std::string& fen);
+
+	Board get_moved_board(const Move& move);
 	int16_t get_score(Color color);
 	int16_t move_score(const Move& move, Color color);
-	void clear_moves();
+
 	void move_piece(const Move& move);
-	Board get_moved_board(const Move& move);
+
+	void clear_moves();
 	void generate_moves(Color color);
-	void draw_pieces(sf::RenderWindow& window, std::map<Piece_type, sf::Texture>& textures, float cell_size);
-	void draw_moves(sf::RenderWindow& window, std::map<Piece_type, sf::Texture>& textures, float cell_size);
-	void check_click_on_piece(const sf::RenderWindow& window, float cell_size);
 	void generate_piece_moves(int8_t x, int8_t y, Color color);
-	const std::list<Position>& get_offsets(Piece_type type);
+	void generate_pins();
 	void remove_illegal_moves(Color color);
 
-	private:
-		void generate_pawn_moves(int8_t x, int8_t y, Color color);
-		void handle_castling(const Move& move);
+	void check_click_on_piece(const sf::RenderWindow& window, float cell_size);
+	void draw_moves(sf::RenderWindow& window, std::map<Type, sf::Texture>& textures, float cell_size);
+	void draw_pieces(sf::RenderWindow& window, std::map<Type, sf::Texture>& textures, float cell_size);
+	void draw_pins(sf::RenderWindow& window, std::map<Type, sf::Texture>& textures, float cell_size);
+
+private:
+	void generate_pawn_moves(int8_t x, int8_t y, Color color);
+	void handle_castling(const Move& move);
+	bool x_ray_attack(Position pos, Position pos2);
+	bool is_legal(Move move);
 };
 
 #endif
