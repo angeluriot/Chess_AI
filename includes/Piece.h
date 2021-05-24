@@ -36,7 +36,7 @@ enum Type : int8_t
 
 Type get_type_from_fen(char c);
 Color get_color(Type type);
-uint16_t get_value(Type piece);
+int16_t get_value(Type piece, Color color);
 int16_t get_score(Color color);
 const std::list<Position>& get_offsets(Type type);
 bool is_linear(Type type);

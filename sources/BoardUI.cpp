@@ -24,7 +24,7 @@ void Board::draw_moves(sf::RenderWindow& window, std::map<Type, sf::Texture>& te
 {
 	sf::RectangleShape cell;
 	sf::RenderTexture tex;
-	std::list<Move>& moves = (player_turn == Color::White ? white_moves : black_moves);
+	auto moves = generate_moves(player_turn);
 
 	tex.create(cell_size * 8, cell_size * 8);
 
@@ -41,7 +41,7 @@ void Board::draw_moves(sf::RenderWindow& window, std::map<Type, sf::Texture>& te
 	window.draw(sprite);
 }
 
-void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size)
+void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size, Board* last_board = nullptr)
 {
 	static bool clicked_last_frame = false;
 
@@ -66,17 +66,13 @@ void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size
 
 	if (clicked_cell != Position::invalid)
 	{
-		auto& moves = (player_turn == Color::White ? white_moves : black_moves);
-		for (auto& move : moves)
+		auto moves = generate_moves(player_turn);
+		auto move_it = std::find(moves.begin(), moves.end(), Move(Position(clicked_cell.x + 2, clicked_cell.y + 2), Position(cell_pos.x + 2, cell_pos.y + 2)));
+		if (move_it != moves.end())
 		{
-			if (move.target == Position(cell_pos.x + 2, cell_pos.y + 2) && move.start == Position(clicked_cell.x + 2, clicked_cell.y + 2))
-			{
-				move_piece(move);
-				player_turn = Color(player_turn * -1);
-				generate_moves(player_turn);
-				remove_illegal_moves(player_turn);
-				break;
-			}
+			*last_board = *this;
+			move_piece(*move_it);
+			player_turn = Color(player_turn * -1);
 		}
 		clicked_cell = Position::invalid;
 		return;
@@ -88,7 +84,7 @@ void Board::check_click_on_piece(const sf::RenderWindow& window, float cell_size
 
 void Board::draw_pins(sf::RenderWindow& window, std::map<Type, sf::Texture>& textures, float cell_size)
 {
-	sf::RenderTexture tex;
+	/*sf::RenderTexture tex;
 	sf::RectangleShape cell;
 
 	tex.create(cell_size * 8, cell_size * 8);
@@ -96,7 +92,7 @@ void Board::draw_pins(sf::RenderWindow& window, std::map<Type, sf::Texture>& tex
 	cell.setSize({cell_size, cell_size});
 	cell.setFillColor(sf::Color(255, 255, 0, 100));
 
-	for (auto& pin : pins)
+	for (auto& pin : get_color_pins(Color(player_turn * -1)))
 	{
 		for (auto& move : pin.second)
 		{
@@ -104,6 +100,26 @@ void Board::draw_pins(sf::RenderWindow& window, std::map<Type, sf::Texture>& tex
 			tex.draw(cell);
 		}
 	}
+	sf::Sprite sprite(tex.getTexture());
+	sprite.setPosition({(window.getSize().x - tex.getSize().x) / 2.f, (window.getSize().y - tex.getSize().y) / 2.f});
+	window.draw(sprite);*/
+}
+
+void Board::draw_last_move(sf::RenderWindow& window, std::map<Type, sf::Texture>& textures, float cell_size)
+{
+	sf::RenderTexture tex;
+	sf::RectangleShape cell;
+
+	tex.create(cell_size * 8, cell_size * 8);
+
+	cell.setSize({cell_size, cell_size});
+	cell.setFillColor(sf::Color(255, 255, 0, 150));
+
+	cell.setPosition({(last_move.target.x - 2) * cell_size, (9 - last_move.target.y) * cell_size });
+	tex.draw(cell);
+	cell.setPosition({(last_move.start.x - 2) * cell_size, (9 - last_move.start.y) * cell_size });
+	tex.draw(cell);
+
 	sf::Sprite sprite(tex.getTexture());
 	sprite.setPosition({(window.getSize().x - tex.getSize().x) / 2.f, (window.getSize().y - tex.getSize().y) / 2.f});
 	window.draw(sprite);

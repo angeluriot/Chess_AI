@@ -54,6 +54,7 @@ void draw_grid(sf::RenderTexture& tex, float cell_size)
 
 int main()
 {
+	srand(time(NULL));
 	sf::RenderWindow window;
 	init_window(window, "Chess AI");
 	bool end = false;
@@ -61,6 +62,7 @@ int main()
 	float cell_size = std::min(window.getSize().x, window.getSize().y) / 8.f;
 
 	bool space_pressed = false;
+	bool arrow_pressed = false;
 
 	grid_tex.create(cell_size * 8, cell_size * 8);
 	draw_grid(grid_tex, cell_size);
@@ -69,8 +71,8 @@ int main()
 	grid_spr.setPosition({(window.getSize().x - grid_tex.getSize().x) / 2.f, (window.getSize().y - grid_tex.getSize().y) / 2.f});
 
 	Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	Computer white_computer(Color::White);
-	Computer black_computer(Color::Black);
+	Board last_board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	Computer computer;
 
 	sf::Texture white_pawn; white_pawn.loadFromFile("dependencies/resources/white_pawn.png");
 	sf::Texture white_rook; white_rook.loadFromFile("dependencies/resources/white_rook.png");
@@ -91,8 +93,6 @@ int main()
 		{ Type::White_Knight, white_knight }, { Type::White_Bishop, white_bishop }, { Type::White_Queen, white_queen }, { Type::White_King, white_king }
 	};
 
-	board.generate_moves(board.player_turn);
-	board.remove_illegal_moves(board.player_turn);
 	sf::Event event;
 	while(!end)
 	{
@@ -100,25 +100,32 @@ int main()
 		window.clear();
 		window.draw(grid_spr);
 
+		board.draw_last_move(window, textures, cell_size);
 		board.draw_pieces(window, textures, cell_size);
 		//board.draw_moves(window, textures, cell_size);
-		board.draw_pins(window, textures, cell_size);
+		//board.draw_pins(window, textures, cell_size);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
 			if (!space_pressed)
 			{
-				if (board.player_turn == Color::White)
-					white_computer.move(board, 5);
-				else
-					black_computer.move(board, 5);
+				last_board = board;
+				computer.move(board, 6);
 			}
 			space_pressed = true;
 		}
 		else
 			space_pressed = false;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+		{
+			if (!arrow_pressed)
+				board = last_board;
+			arrow_pressed = true;
+		}
+		else
+			arrow_pressed = false;
 
-		board.check_click_on_piece(window, cell_size);
+		board.check_click_on_piece(window, cell_size, &last_board);
 
 		window.display();
 	}
