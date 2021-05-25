@@ -7,14 +7,14 @@
 
 class Board;
 
-enum Color : int8_t
+enum Color : int
 {
 	White = 1,
 	Black = -1,
 	Empty = 0
 };
 
-enum Type : int8_t
+enum Type : int
 {
 	No_Piece = 0,
 	Out_Of_Range = 99,
@@ -36,8 +36,7 @@ enum Type : int8_t
 
 Type get_type_from_fen(char c);
 Color get_color(Type type);
-int16_t get_value(Type piece, Color color);
-int16_t get_score(Color color);
+int get_value(Type piece);
 const std::list<Position>& get_offsets(Type type);
 bool is_linear(Type type);
 

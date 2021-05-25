@@ -93,7 +93,7 @@ void Board::handle_castling(const Move& move)
 		allowed_castle[get_color(piece)][move.start.x == 2 ? 0 : 1] = false;
 
 	// Si une tour se fait manger on désactive un roque
-	if (move.target == Position(2, 2) || move.target == Position(2, 9) || move.target == Position(9, 2) || move.target == Position(9, 9))
+	if (std::abs(at(move.target)) == Type::White_Rook && (move.target == Position(2, 2) || move.target == Position(2, 9) || move.target == Position(9, 2) || move.target == Position(9, 9)))
 		allowed_castle[enemy_color][move.target.x == 2 ? 0 : 1] = false;
 }
 

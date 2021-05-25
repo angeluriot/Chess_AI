@@ -2,11 +2,15 @@
 #include <chrono>
 #include <future>
 #include <tuple>
+#include <random>
 
 Computer::Computer()
 {
+    std::mt19937 generator(0);
+    std::uniform_int_distribution<uint64_t> distribution(std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max());
+
 	for (int i = 0; i < zobrist_keys.size(); i++)
-		zobrist_keys[i] = rand();
+		zobrist_keys[i] = distribution(generator);
 	transposition_table.resize(64000031, PositionSave{0, -1, 0, true, NodeType::EXACT, Move::no_move});
 }
 
@@ -47,7 +51,7 @@ uint64_t Computer::get_key(uint8_t x, uint8_t y, Type type) const
 uint64_t Computer::signature_hash(const Board& board) const
 {
 	uint64_t ret = 0;
-	bool first = true;
+
 	for (int x = 2; x < 10; x++)
 	{
 		for (int y = 2; y < 10; y++)
@@ -74,11 +78,12 @@ uint64_t Computer::signature_hash(const Board& board) const
 	return ret;
 }
 
-std::pair<Move, float> Computer::find_move(Board board, uint8_t depth, float alpha, float beta, bool maximize)
+std::pair<Move, int> Computer::find_move(Board board, uint8_t depth, int alpha, int beta, bool maximize)
 {
 	uint64_t hash = signature_hash(board);
+
 	auto& tt_pos = transposition_table[hash % transposition_table.size()];
-	float alpha_original = alpha;
+	int alpha_original = alpha;
 
 	if (tt_pos.depth >= depth && tt_pos.hash == hash)
 	{
@@ -89,22 +94,45 @@ std::pair<Move, float> Computer::find_move(Board board, uint8_t depth, float alp
 				return std::make_pair(tt_pos.best_move, tt_pos.score);
 			case NodeType::UPPERBOUND:
 				alpha = std::max(alpha, tt_pos.score);
+				break;
 			case NodeType::LOWERBOUND:
 				beta = std::min(beta, tt_pos.score);
+				break;
 		}
 
 		if (alpha >= beta)
 			return std::make_pair(tt_pos.best_move, tt_pos.score);
 	}
 	if (depth == 0 || board.is_finished())
-		return std::make_pair(Move::no_move, (maximize ? 1 : -1) * board.get_score(board.player_turn));
+		return std::make_pair(Move::no_move, (maximize ? 1 : -1) * board.get_score());
 
-	float best_score = -std::numeric_limits<float>::infinity();
+	int best_score = std::numeric_limits<int>::min() + 1;
 	Move best_move = Move::no_move;
 	auto move_list = board.generate_moves(board.player_turn);
+
+	move_list.sort([this, board](Move& a, Move& b) {
+		Type at_a = board.board[a.target.x][a.target.y], at_b = board.board[b.target.x][b.target.y];
+
+		int a_score = 0;
+		int b_score = 0;
+
+		// Capture
+		if (at_a != Type::No_Piece)
+			a_score += std::abs(get_value(at_a)) - (std::abs(get_value(board.board[a.start.x][a.start.y])) / 10);
+		if (at_b != Type::No_Piece)
+			b_score += std::abs(get_value(at_b)) - (std::abs(get_value(board.board[b.start.x][b.start.y])) / 10);
+
+		if (a.target == board.last_move.target)
+			a_score += 1001;
+		if (b.target == board.last_move.target)
+			b_score += 1001;
+
+		return a_score >= b_score;
+	});
+
 	for (auto& move : move_list)
 	{
-		float score = -find_move(board.get_moved_board(move), depth - 1, -beta, -alpha, !maximize).second;
+		int score = -find_move(board.get_moved_board(move), depth - 1, -beta, -alpha, !maximize).second;
 		if (best_score < score)
 		{
 			best_score = score;
@@ -132,6 +160,6 @@ void Computer::move(Board& board, uint8_t depth)
 	for (auto& tt_pos : transposition_table)
 		tt_pos.ancient = true;
 
-	board.move_piece(find_move(board, depth, -std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), board.player_turn == Color::White).first);
+	board.move_piece(find_move(board, depth, -1000000000, 1000000000, board.player_turn == Color::White).first);
 	board.player_turn = Color(board.player_turn * -1);
 }

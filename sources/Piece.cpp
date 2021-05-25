@@ -30,22 +30,22 @@ Color get_color(Type piece)
 	return (piece > 0 ? Color::White : Color::Black);
 }
 
-int16_t get_value(Type piece, Color color)
+int get_value(Type piece)
 {
 	switch (std::abs(piece))
 	{
 	case Type::White_Pawn:
-		return 1 * get_color(piece);
+		return 100 * get_color(piece);
 	case Type::White_Knight:
-		return 3 * get_color(piece);
+		return 320 * get_color(piece);
 	case Type::White_Bishop:
-		return 3 * get_color(piece);
+		return 330 * get_color(piece);
 	case Type::White_Rook:
-		return 5 * get_color(piece);
+		return 500 * get_color(piece);
 	case Type::White_Queen:
-		return 9 * get_color(piece);
+		return 900 * get_color(piece);
 	case Type::White_King:
-		return (color == get_color(piece) ? 900 : 500) * get_color(piece);
+		return 90000 * get_color(piece);
 	default:
 		return 0;
 	}
