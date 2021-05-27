@@ -6,81 +6,13 @@
 
 Computer::Computer()
 {
-    std::mt19937 generator(0);
-    std::uniform_int_distribution<uint64_t> distribution(std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max());
-
-	for (int i = 0; i < zobrist_keys.size(); i++)
-		zobrist_keys[i] = distribution(generator);
-	transposition_table.resize(64000031, PositionSave{0, -1, 0, true, NodeType::EXACT, Move::no_move});
-}
-
-uint64_t Computer::get_key(uint8_t x, uint8_t y, Type type) const
-{
-	switch (type)
-	{
-		case Type::Black_Bishop:
-			return zobrist_keys[64 * 0 + (x - 2) * 8 + (y - 2)];
-		case Type::Black_Rook:
-			return zobrist_keys[64 * 1 + (x - 2) * 8 + (y - 2)];
-		case Type::Black_Knight:
-			return zobrist_keys[64 * 2 + (x - 2) * 8 + (y - 2)];
-		case Type::Black_Queen:
-			return zobrist_keys[64 * 3 + (x - 2) * 8 + (y - 2)];
-		case Type::Black_King:
-			return zobrist_keys[64 * 4 + (x - 2) * 8 + (y - 2)];
-		case Type::Black_Pawn:
-			return zobrist_keys[64 * 5 + (x - 2) * 8 + (y - 2)];
-		case Type::White_King:
-			return zobrist_keys[64 * 6 + (x - 2) * 8 + (y - 2)];
-		case Type::White_Rook:
-			return zobrist_keys[64 * 7 + (x - 2) * 8 + (y - 2)];
-		case Type::White_Knight:
-			return zobrist_keys[64 * 8 + (x - 2) * 8 + (y - 2)];
-		case Type::White_Queen:
-			return zobrist_keys[64 * 9 + (x - 2) * 8 + (y - 2)];
-		case Type::White_Bishop:
-			return zobrist_keys[64 * 10 + (x - 2) * 8 + (y - 2)];
-		case Type::White_Pawn:
-			return zobrist_keys[64 * 11 + (x - 2) * 8 + (y - 2)];
-		default:
-			return 0;
-	}
-	return 0;
-}
-
-uint64_t Computer::signature_hash(const Board& board) const
-{
-	uint64_t ret = 0;
-
-	for (int x = 2; x < 10; x++)
-	{
-		for (int y = 2; y < 10; y++)
-		{
-			if (board.board[x][y] == Type::No_Piece)
-				continue;
-			ret ^= get_key(x, y, board.board[x][y]);
-		}
-	}
-	if (board.player_turn == Color::Black)
-		ret ^= zobrist_keys[64 * 12];
-	if (board.en_passant != Position::invalid)
-		ret ^= zobrist_keys[64 * 12 + 1 + (board.en_passant.x - 2)];
-
-	uint8_t offset = 0;
-	for (auto& pair : board.allowed_castle)
-	{
-		for (bool allowed : pair.second)
-		{
-			ret ^= zobrist_keys[64 * 12 + 1 + 8 + offset];
-			offset++;
-		}
-	}
-	return ret;
+	transposition_table.resize(67108864, PositionSave{0, -1, 0, true, NodeType::EXACT, Move::no_move});
 }
 
 std::pair<Move, int> Computer::find_move(Board board, uint8_t depth, int alpha, int beta, bool maximize)
 {
-	uint64_t hash = signature_hash(board);
+
+	uint64_t hash = board.signature_hash();
 
 	auto& tt_pos = transposition_table[hash % transposition_table.size()];
 	int alpha_original = alpha;
@@ -157,9 +89,17 @@ std::pair<Move, int> Computer::find_move(Board board, uint8_t depth, int alpha, 
 
 void Computer::move(Board& board, uint8_t depth)
 {
-	for (auto& tt_pos : transposition_table)
-		tt_pos.ancient = true;
+	static OpeningBook opening_book("./Perfect_2021/BIN/Perfect2021.bin");
 
-	board.move_piece(find_move(board, depth, -1000000000, 1000000000, board.player_turn == Color::White).first);
+	auto book_move = opening_book.book_move(board);
+	if (board.half_turn < 1000 && book_move.first != Move::no_move)
+		board.move_piece(book_move.first);
+	else
+	{
+		for (auto& tt_pos : transposition_table)
+			tt_pos.ancient = true;
+		board.move_piece(find_move(board, depth, -1000000000, 1000000000, board.player_turn == Color::White).first);
+	}
+
 	board.player_turn = Color(board.player_turn * -1);
 }

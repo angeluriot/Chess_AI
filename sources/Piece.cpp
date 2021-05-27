@@ -37,9 +37,9 @@ int get_value(Type piece)
 	case Type::White_Pawn:
 		return 100 * get_color(piece);
 	case Type::White_Knight:
-		return 320 * get_color(piece);
+		return 300 * get_color(piece);
 	case Type::White_Bishop:
-		return 330 * get_color(piece);
+		return 300 * get_color(piece);
 	case Type::White_Rook:
 		return 500 * get_color(piece);
 	case Type::White_Queen:

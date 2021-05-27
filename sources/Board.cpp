@@ -30,17 +30,39 @@ void Board::init_board(const std::string& fen)
 	i++;
 
 	player_turn = (fen[i] == 'w' ? Color::White : Color::Black);
+
+	i+=2;
+	while (fen[i] != ' ')
+	{
+		switch (fen[i])
+		{
+			case 'K':
+				allowed_castle[Color::White][1] = true;
+				break;
+			case 'Q':
+				allowed_castle[Color::White][0] = true;
+				break;
+			case 'k':
+				allowed_castle[Color::Black][1] = true;
+				break;
+			case 'q':
+				allowed_castle[Color::Black][0] = true;
+				break;
+		}
+		i++;
+	}
 }
 
 Board::Board(const std::string& fen)
 {
-	init_board(fen);
-	en_passant = Position::invalid;
 	allowed_castle = {
-		{ Color::White, {true, true} },
-		{ Color::Black, {true, true} }
+		{ Color::White, {false, false} },
+		{ Color::Black, {false, false} }
 	};
+	en_passant = Position::invalid;
 	clicked_cell = Position::invalid;
+	half_turn = 0;
+	init_board(fen);
 }
 
 Board::Board(const Board& other)
@@ -50,6 +72,7 @@ Board::Board(const Board& other)
 	player_turn = other.player_turn;
 	allowed_castle = other.allowed_castle;
 	last_move = other.last_move;
+	half_turn = other.half_turn;
 }
 
 void Board::operator=(const Board& other)
@@ -59,6 +82,7 @@ void Board::operator=(const Board& other)
 	player_turn = other.player_turn;
 	allowed_castle = other.allowed_castle;
 	last_move = other.last_move;
+	half_turn = other.half_turn;
 }
 
 void Board::handle_castling(const Move& move)
@@ -120,4 +144,5 @@ void Board::move_piece(const Move& move)
 		at(move.target) = Type(Type::White_Queen * get_color(at(move.target)));
 
 	last_move = move;
+	half_turn++;
 }
