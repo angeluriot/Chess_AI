@@ -2,19 +2,6 @@
 
 uint16_t screen_width;
 
-// Vérifie les évenements
-
-void event_check(sf::Event& sf_event, sf::RenderWindow& window, bool& end)
-{
-	while (window.pollEvent(sf_event))
-		if (sf_event.type == sf::Event::Closed)
-		{
-			window.close();
-			end = true;
-			return;
-		}
-}
-
 // Donne un réel entre min et max
 
 float random_float(float min, float max)
@@ -40,4 +27,16 @@ bool rand_probability(const double& probability)
 		return (rand() / static_cast<double>(RAND_MAX) < probability);
 
 	return true;
+}
+
+uint32_t random_32()
+{
+	static uint32_t state = 1804289383;
+	return (state = state ^ (state << 13) ^ (state >> 17) ^ (state << 5));
+}
+
+uint64_t random_64()
+{
+	uint64_t randoms[4] = { random_32() & 0xFFFF, random_32() & 0xFFFF, random_32() & 0xFFFF, random_32() & 0xFFFF };
+	return randoms[0] | (randoms[1] << 16) | (randoms[2] << 32) | (randoms[3] << 48);
 }
