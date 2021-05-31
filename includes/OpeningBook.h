@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <fstream>
-#include "Board.h"
+#include "BitBoard.h"
 #include <map>
 
 struct OpeningBookEntry {
@@ -24,7 +24,7 @@ class OpeningBook
 		OpeningBook(const std::string& name);
 		virtual ~OpeningBook();
 
-		std::pair<Move, int> book_move(Board& board);
+		std::pair<uint16_t, int> book_move(const BitBoardGlobals& globals, BitBoard& board);
 
 	private:
 		int find_pos(uint64_t key);

@@ -1,4 +1,5 @@
 #include "BitBoard.h"
+#include "Position.h"
 
 /*
 **  ==============================
@@ -7,6 +8,30 @@
 **
 **  ==============================
 */
+
+BitBoard::BitBoard(const BitBoard& other)
+{
+	piece_boards = other.piece_boards;
+	occupancy_boards = other.occupancy_boards;
+	side_to_move = other.side_to_move;
+	allowed_castle = other.allowed_castle;
+	en_passant = other.en_passant;
+	half_turn = other.half_turn;
+	clicked_cell = other.clicked_cell;
+	last_move = other.last_move;
+}
+
+void BitBoard::operator=(const BitBoard& other)
+{
+	piece_boards = other.piece_boards;
+	occupancy_boards = other.occupancy_boards;
+	side_to_move = other.side_to_move;
+	allowed_castle = other.allowed_castle;
+	en_passant = other.en_passant;
+	half_turn = other.half_turn;
+	clicked_cell = other.clicked_cell;
+	last_move = other.last_move;
+}
 
 
 static Piece get_piece_from_fen(char c)
@@ -32,7 +57,7 @@ static Piece get_piece_from_fen(char c)
 	return Piece(ret + !std::isupper(c));
 }
 
-BitBoard::BitBoard(const std::string& fen)
+BitBoard::BitBoard(const std::string& fen) : half_turn(0), clicked_cell(No_Square), last_move(No_Square), en_passant(No_Square)
 {
 	for (auto& board : occupancy_boards)
 		board = 0;
@@ -103,6 +128,18 @@ BitBoard::BitBoard(const std::string& fen)
 **  ==============================
 */
 
+BitBoard BitBoard::get_moved_board(uint16_t move) const
+{
+	BitBoard cpy(*this);
+	cpy.move_piece(move);
+	return cpy;
+}
+
+bool BitBoard::is_finished() const
+{
+	return count_bits(piece_boards[Piece::White_King]) == 0 || count_bits(piece_boards[Piece::Black_King]) == 0;
+}
+
 bool BitBoard::is_square_attacked(const BitBoardGlobals& globals, uint8_t square, Color color)
 {
 	if (color == Color::White && piece_boards[Piece::White_Pawn] & globals.pawn_masks.find(Color::Black)->second[square])
@@ -122,6 +159,47 @@ bool BitBoard::is_square_attacked(const BitBoardGlobals& globals, uint8_t square
 	return false;
 }
 
+uint64_t BitBoard::signature_hash(const BitBoardGlobals& globals)
+{
+	uint64_t ret = 0;
+
+	for (uint8_t i = 0; i < 12; i++)
+	{
+		uint64_t board = piece_boards[i];
+		while (board)
+		{
+			uint8_t square = get_least_significant_bit(board);
+			ret ^= globals.get_key(i, square);
+			pop_bit(board, square);
+		}
+	}
+
+	if (allowed_castle & WK)
+		ret ^= globals.zobrist_keys[64 * 12 + 0];
+	if (allowed_castle & WQ)
+		ret ^= globals.zobrist_keys[64 * 12 + 1];
+	if (allowed_castle & BK)
+		ret ^= globals.zobrist_keys[64 * 12 + 2];
+	if (allowed_castle & BQ)
+		ret ^= globals.zobrist_keys[64 * 12 + 3];
+
+/*	if (en_passant != No_Square /*&&
+			((std::abs(board[en_passant.x - 1][en_passant.y]) == Type::White_Pawn && get_color(board[en_passant.x - 1][en_passant.y]) != get_color(board[en_passant.x][en_passant.y])) ||
+			(std::abs(board[en_passant.x + 1][en_passant.y]) == Type::White_Pawn && get_color(board[en_passant.x + 1][en_passant.y]) != get_color(board[en_passant.x][en_passant.y])))
+		ret ^= globals.zobrist_keys[64 * 12 + 4 + (en_passant % 8)];*/
+
+	if (side_to_move == Color::White)
+		ret ^= globals.zobrist_keys[64 * 12 + 4 + 8];
+	return ret;
+}
+
+uint8_t BitBoard::piece_at(uint8_t square) const
+{
+	for (uint8_t i = 0; i < 12; i++)
+		if (get_bit(piece_boards[i], square))
+			return i;
+	return No_Piece;
+}
 
 /*
 **  ==============================
@@ -158,4 +236,68 @@ void BitBoard::draw_pieces(sf::RenderWindow& window, std::map<Piece, sf::Texture
 	sf::Sprite tex_spr(tex.getTexture());
 	tex_spr.setPosition((window.getSize().x - tex.getSize().x) / 2.f, 0);
 	window.draw(tex_spr);
+}
+
+void BitBoard::check_click_on_piece(const BitBoardGlobals& globals, const sf::RenderWindow& window, float cell_size, BitBoard* last_board)
+{
+	static bool clicked_last_frame = false;
+
+	if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+	{
+		clicked_last_frame = false;
+		return;
+	}
+	if (clicked_last_frame)
+		return;
+	clicked_last_frame = true;
+
+	if ((sf::Mouse::getPosition(window).x - (window.getSize().x / 2.f) + (cell_size * 4)) < 0 || sf::Mouse::getPosition(window).y < 0)
+		return;
+
+	uint8_t cell_pos = static_cast<int8_t>((sf::Mouse::getPosition(window).x - (window.getSize().x / 2.f) + (cell_size * 4)) / cell_size) + static_cast<int8_t>(sf::Mouse::getPosition(window).y / cell_size) * 8;
+
+	if (cell_pos < 0 || cell_pos > 63)
+		return;
+
+
+	if (clicked_cell != No_Square)
+	{
+		auto moves = generate_moves(globals);
+		auto move_it = std::find(moves.begin(), moves.end(), (clicked_cell << 8) | cell_pos);
+		if (move_it != moves.end())
+		{
+			*last_board = *this;
+			move_piece(*move_it);
+		}
+		clicked_cell = No_Square;
+		return;
+	}
+
+	if (get_bit(occupancy_boards[side_to_move], cell_pos))
+		clicked_cell = cell_pos;
+}
+
+void BitBoard::draw_last_move(sf::RenderWindow& window, std::map<Piece, sf::Texture>& textures, float cell_size)
+{
+	sf::RenderTexture tex;
+	sf::RectangleShape cell;
+
+	if (last_move == No_Square)
+		return;
+
+	uint8_t start = (last_move & 0xFF00) >> 8, target = last_move & 0xFF;
+
+	tex.create(cell_size * 8, cell_size * 8);
+
+	cell.setSize({cell_size, cell_size});
+	cell.setFillColor(sf::Color(255, 255, 0, 150));
+
+	cell.setPosition(sf::Vector2f((target % 8) * cell_size, (7 - target / 8) * cell_size));
+	tex.draw(cell);
+	cell.setPosition(sf::Vector2f((start % 8) * cell_size, (7 - start / 8) * cell_size));
+	tex.draw(cell);
+
+	sf::Sprite sprite(tex.getTexture());
+	sprite.setPosition({(window.getSize().x - tex.getSize().x) / 2.f, (window.getSize().y - tex.getSize().y) / 2.f});
+	window.draw(sprite);
 }

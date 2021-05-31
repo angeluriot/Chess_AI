@@ -24,15 +24,14 @@ OpeningBook::~OpeningBook()
 		file.close();
 }
 
-std::pair<Move, int> OpeningBook::book_move(Board& board)
+std::pair<uint16_t, int> OpeningBook::book_move(const BitBoardGlobals& globals, BitBoard& board)
 {
 	OpeningBookEntry entry;
-	std::list<Move> list;
-	uint64_t hash = board.signature_hash();
+	std::list<uint16_t> list;
+	uint64_t hash = board.signature_hash(globals);
 
 	if (!file.good() || !file.is_open() || book_size == 0)
 		throw std::runtime_error("D");
-
 
 	int best_move = -1;
 	int best_score = 0;
@@ -55,9 +54,16 @@ std::pair<Move, int> OpeningBook::book_move(Board& board)
 		uint8_t target_y = 7 - ((best_move & 0b111000) >> 3);
 		uint8_t start_x =  (best_move & 0b111000000) >> 6;
 		uint8_t start_y =  7 - ((best_move & 0b111000000000) >> 9);
-		return std::make_pair(Move(Position(start_x + 2, start_y + 2), Position(target_x + 2, target_y + 2)), best_score);
+		if (get_bit(board.piece_boards[Piece::White_King] | board.piece_boards[Piece::Black_King], start_y * 8 + start_x))
+		{
+			if (start_x == e && target_x == a)
+				target_x = c;
+			if (start_x == e && target_x == h)
+				target_x = g;
+		}
+		return std::make_pair(((start_y * 8 + start_x) << 8) | (target_y * 8 + target_x), best_score);
 	}
-	return std::make_pair(Move::no_move, 0);
+	return std::make_pair(No_Square, 0);
 }
 
 int OpeningBook::find_pos(uint64_t key)

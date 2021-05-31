@@ -2,8 +2,8 @@
 #define COMPUTER_H
 
 #include "utils.h"
-#include "OpeningBook.h"
-#include "Board.h"
+//#include "OpeningBook.h"
+#include "BitBoard.h"
 
 enum NodeType : uint8_t
 {
@@ -19,7 +19,7 @@ struct PositionSave
 	int score;
 	bool ancient;
 	NodeType type;
-	Move best_move;
+	uint16_t best_move;
 };
 
 class Computer
@@ -29,9 +29,8 @@ public:
 
 	Computer();
 
-	std::pair<Move, int> find_move(Board board, uint8_t depth, int alpha, int beta, bool maximize);
-	void move(Board& board, uint8_t depth);
-	uint64_t get_key(uint8_t x, uint8_t y, Type type) const;
+	std::pair<uint16_t, int> find_move(const BitBoardGlobals& globals, BitBoard board, uint8_t depth, int alpha, int beta, bool maximize);
+	void move(const BitBoardGlobals& globals, BitBoard& board, uint8_t depth);
 };
 
 #endif

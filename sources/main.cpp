@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "BitBoard.h"
+#include "Computer.h"
 
 // Vérifie les évenements
 
@@ -83,9 +84,8 @@ int main()
 	grid_spr.setPosition({(window.getSize().x - grid_tex.getSize().x) / 2.f, (window.getSize().y - grid_tex.getSize().y) / 2.f});
 
 	BitBoard board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	board.generate_moves(globals);
-	//Board last_board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	//Computer computer;
+	BitBoard last_board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	Computer computer;
 
 	sf::Texture white_pawn; white_pawn.loadFromFile("dependencies/resources/white_pawn.png");
 	sf::Texture white_rook; white_rook.loadFromFile("dependencies/resources/white_rook.png");
@@ -113,17 +113,17 @@ int main()
 		window.clear();
 		window.draw(grid_spr);
 
-		//board.draw_last_move(window, textures, cell_size);
+		board.draw_last_move(window, textures, cell_size);
 		board.draw_pieces(window, textures, cell_size);
 		//board.draw_moves(window, textures, cell_size);
 		//board.draw_pins(window, textures, cell_size);
 
-/*		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
 			if (!space_pressed)
 			{
 				last_board = board;
-				computer.move(board, depth);
+				computer.move(globals, board, depth);
 			}
 			space_pressed = true;
 		}
@@ -157,7 +157,7 @@ int main()
 		else
 			down_pressed = false;
 
-		board.check_click_on_piece(window, cell_size, &last_board);*/
+		board.check_click_on_piece(globals, window, cell_size, &last_board);
 
 		window.display();
 	}

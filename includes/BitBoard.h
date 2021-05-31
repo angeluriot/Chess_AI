@@ -71,6 +71,7 @@ struct BitBoardGlobals
 	std::array<uint64_t, 64> knight_masks, king_masks, bishop_masks, rook_masks;
 	std::array<std::array<uint64_t, 4096>, 64> rook_attacks;
 	std::array<std::array<uint64_t, 512>, 64> bishop_attacks;
+	std::array<uint64_t, 781> zobrist_keys;
 
 	BitBoardGlobals();
 
@@ -106,6 +107,7 @@ struct BitBoardGlobals
 	uint64_t bishop_threats_with_blockers(uint8_t square, uint64_t blockers) const;
 	uint64_t rook_threats_with_blockers(uint8_t square, uint64_t blockers) const;
 	uint64_t set_occupancy(uint64_t index, uint8_t bits_in_mask, uint64_t attack_mask) const;
+	uint64_t get_key(uint8_t piece, uint8_t square) const;
 
 
 	private:
@@ -113,7 +115,7 @@ struct BitBoardGlobals
 		uint64_t find_magic_number(uint8_t square, uint8_t relevant, bool is_rook) const;
 };
 
-inline bool get_bit(uint64_t& board, uint8_t bit) { return (board & (1ULL << bit)) ? true : false; }
+inline bool get_bit(const uint64_t& board, uint8_t bit) { return (board & (1ULL << bit)) ? true : false; }
 inline void set_bit(uint64_t& board, uint8_t bit) { board |= (1ULL << bit); }
 inline void pop_bit(uint64_t& board, uint8_t bit) { get_bit(board, bit) ? (board ^= (1ULL << bit)) : 0; }
 void print_bitboard(uint64_t board);
@@ -128,13 +130,27 @@ public:
 	Color side_to_move;
 	uint8_t allowed_castle;
 	uint8_t en_passant;
+	uint16_t half_turn;
+	uint8_t clicked_cell;
+	uint16_t last_move;
 
 	BitBoard() = default;
+	BitBoard(const BitBoard& other);
 	BitBoard(const std::string& fen);
+	void operator=(const BitBoard& other);
 
 	void draw_pieces(sf::RenderWindow& window, std::map<Piece, sf::Texture>& textures, float cell_size);
-	std::list<uint16_t> generate_moves(const BitBoardGlobals& globals);
+	std::vector<uint16_t> generate_moves(const BitBoardGlobals& globals);
 	bool is_square_attacked(const BitBoardGlobals& globals, uint8_t square, Color color);
+	void move_piece(uint16_t move);
+	void handle_castling(uint16_t move);
+	void check_click_on_piece(const BitBoardGlobals& globals, const sf::RenderWindow& window, float cell_size, BitBoard* last_board = nullptr);
+	void draw_last_move(sf::RenderWindow& window, std::map<Piece, sf::Texture>& textures, float cell_size);
+	bool is_finished() const;
+	BitBoard get_moved_board(uint16_t move) const;
+	uint64_t signature_hash(const BitBoardGlobals& globals);
+	uint8_t piece_at(uint8_t square) const;
+	int get_score(const BitBoardGlobals& globals);
 };
 
 #endif
