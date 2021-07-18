@@ -1,9 +1,19 @@
-#include "PieceType.h"
 #include "utils.h"
-#include "Move.h"
-#include "Piece.h"
-#include "Board.h"
+#include "BitBoard.h"
 #include "Computer.h"
+
+// Vérifie les évenements
+
+void event_check(sf::Event& sf_event, sf::RenderWindow& window, bool& end)
+{
+	while (window.pollEvent(sf_event))
+		if (sf_event.type == sf::Event::Closed)
+		{
+			window.close();
+			end = true;
+			return;
+		}
+}
 
 // Initialisation de la fenêtre en fonction de l'écran
 
@@ -55,6 +65,7 @@ void draw_grid(sf::RenderTexture& tex, float cell_size)
 
 int main()
 {
+	srand(time(NULL));
 	sf::RenderWindow window;
 	init_window(window, "Chess AI");
 	bool end = false;
@@ -62,6 +73,7 @@ int main()
 	float cell_size = std::min(window.getSize().x, window.getSize().y) / 8.f;
 
 	bool space_pressed = false;
+	bool left_pressed = false, up_pressed = false, down_pressed = false;
 
 	grid_tex.create(cell_size * 8, cell_size * 8);
 	draw_grid(grid_tex, cell_size);
@@ -69,9 +81,9 @@ int main()
 	sf::Sprite grid_spr(grid_tex.getTexture());
 	grid_spr.setPosition({(window.getSize().x - grid_tex.getSize().x) / 2.f, (window.getSize().y - grid_tex.getSize().y) / 2.f});
 
-	Board board;
-	Computer white_computer(White);
-	Computer black_computer(Black);
+	BitBoard board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	BitBoard last_board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	Computer computer;
 
 	sf::Texture white_pawn; white_pawn.loadFromFile("dependencies/resources/white_pawn.png");
 	sf::Texture white_rook; white_rook.loadFromFile("dependencies/resources/white_rook.png");
@@ -86,14 +98,12 @@ int main()
 	sf::Texture black_queen; black_queen.loadFromFile("dependencies/resources/black_queen.png");
 	sf::Texture black_king; black_king.loadFromFile("dependencies/resources/black_king.png");
 
-	std::map<Piece_type, sf::Texture> textures = {
-		{ Black_pawn, black_pawn }, { Black_rook, black_rook }, { Black_knight, black_knight }, { Black_bishop, black_bishop },
-		{ Black_queen, black_queen }, { Black_king, black_king }, { White_pawn, white_pawn }, { White_rook, white_rook },
-		{ White_knight, white_knight }, { White_bishop, white_bishop }, { White_queen, white_queen }, { White_king, white_king }
+	std::map<Piece, sf::Texture> textures = {
+		{ Piece::Black_Pawn, black_pawn }, { Piece::Black_Rook, black_rook }, { Piece::Black_Knight, black_knight }, { Piece::Black_Bishop, black_bishop },
+		{ Piece::Black_Queen, black_queen }, { Piece::Black_King, black_king }, { Piece::White_Pawn, white_pawn }, { Piece::White_Rook, white_rook },
+		{ Piece::White_Knight, white_knight }, { Piece::White_Bishop, white_bishop }, { Piece::White_Queen, white_queen }, { Piece::White_King, white_king }
 	};
 
-	board.generate_moves(board.player_turn);
-	board.remove_illegal_moves(board.player_turn);
 	sf::Event event;
 	while(!end)
 	{
@@ -101,24 +111,33 @@ int main()
 		window.clear();
 		window.draw(grid_spr);
 
+		board.draw_last_move(window, textures, cell_size);
 		board.draw_pieces(window, textures, cell_size);
 		//board.draw_moves(window, textures, cell_size);
+		//board.draw_pins(window, textures, cell_size);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
 			if (!space_pressed)
 			{
-				if (board.player_turn == White)
-					white_computer.move(board, 5);
-				else
-					black_computer.move(board, 5);
+				last_board = board;
+				computer.move(board);
 			}
 			space_pressed = true;
 		}
 		else
 			space_pressed = false;
 
-		board.check_click_on_piece(window, cell_size);
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+		{
+			if (!left_pressed)
+				board = last_board;
+			left_pressed = true;
+		}
+		else
+			left_pressed = false;
+
+		board.check_click_on_piece(window, cell_size, &last_board);
 
 		window.display();
 	}
