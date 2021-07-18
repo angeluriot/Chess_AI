@@ -8,7 +8,7 @@
 **  ==============================
 */
 
-std::vector<uint16_t> BitBoard::generate_moves(const BitBoardGlobals& globals)
+std::vector<uint16_t> BitBoard::generate_moves()
 {
 	std::vector<uint16_t> moves;
 	moves.reserve(50);
@@ -35,34 +35,34 @@ std::vector<uint16_t> BitBoard::generate_moves(const BitBoardGlobals& globals)
 						moves.push_back((static_cast<uint16_t>(start) << 8) | (target + dir));
 				}
 
-				for (current_piece_attacks = globals.pawn_masks.find(side_to_move)->second[start] & occupancy_boards[!side_to_move]; current_piece_attacks != 0;)
+				for (current_piece_attacks = BitBoardGlobals::globals.pawn_masks.find(side_to_move)->second[start] & occupancy_boards[!side_to_move]; current_piece_attacks != 0;)
 				{
 					uint8_t attack_target = get_least_significant_bit(current_piece_attacks);
 					moves.push_back((static_cast<uint16_t>(start) << 8) | attack_target);
 					pop_bit(current_piece_attacks, attack_target);
 				}
 
-				if (en_passant != No_Square && globals.pawn_masks.find(side_to_move)->second[start] & (1ULL << en_passant))
+				if (en_passant != No_Square && BitBoardGlobals::globals.pawn_masks.find(side_to_move)->second[start] & (1ULL << en_passant))
 					moves.push_back((static_cast<uint16_t>(start) << 8) | en_passant);
 
 				pop_bit(current_piece_board, start);
 			}
 		}
 
-		if (side_to_move == Color::White && piece == Piece::White_King)
+		if (side_to_move == Color::White && piece == Piece::White_King && !is_square_attacked(e1, Color::Black))
 		{
 			start = get_least_significant_bit(piece_boards[piece]);
-			if ((allowed_castle & WK) && !get_bit(occupancy_boards[Color::Both], f1) && !get_bit(occupancy_boards[Color::Both], g1) && !is_square_attacked(globals, f1, Color::Black) && !is_square_attacked(globals, g1, Color::Black))
+			if ((allowed_castle & WK) && !get_bit(occupancy_boards[Color::Both], f1) && !get_bit(occupancy_boards[Color::Both], g1) && !is_square_attacked(f1, Color::Black) && !is_square_attacked(g1, Color::Black))
 				moves.push_back((static_cast<uint16_t>(start) << 8) | g1);
-			if (allowed_castle & WQ && !get_bit(occupancy_boards[Color::Both], d1) && !get_bit(occupancy_boards[Color::Both], c1) && !get_bit(occupancy_boards[Color::Both], b1) && !is_square_attacked(globals, c1, Color::Black) && !is_square_attacked(globals, d1, Color::Black))
+			if (allowed_castle & WQ && !get_bit(occupancy_boards[Color::Both], d1) && !get_bit(occupancy_boards[Color::Both], c1) && !get_bit(occupancy_boards[Color::Both], b1) && !is_square_attacked(c1, Color::Black) && !is_square_attacked(d1, Color::Black))
 				moves.push_back((static_cast<uint16_t>(start) << 8) | c1);
 		}
-		else if (side_to_move == Color::Black && piece == Piece::Black_King)
+		else if (side_to_move == Color::Black && piece == Piece::Black_King && !is_square_attacked(e8, Color::White))
 		{
 			start = get_least_significant_bit(piece_boards[piece]);
-			if (allowed_castle & BK && !get_bit(occupancy_boards[Color::Both], f8) && !get_bit(occupancy_boards[Color::Both], g8) && !is_square_attacked(globals, f8, Color::White) && !is_square_attacked(globals, g8, Color::White))
+			if (allowed_castle & BK && !get_bit(occupancy_boards[Color::Both], f8) && !get_bit(occupancy_boards[Color::Both], g8) && !is_square_attacked(f8, Color::White) && !is_square_attacked(g8, Color::White))
 				moves.push_back((static_cast<uint16_t>(start) << 8) | g8);
-			if (allowed_castle & BQ && !get_bit(occupancy_boards[Color::Both], d8) && !get_bit(occupancy_boards[Color::Both], c8) && !get_bit(occupancy_boards[Color::Both], b8) && !is_square_attacked(globals, c8, Color::White) && !is_square_attacked(globals, d8, Color::White))
+			if (allowed_castle & BQ && !get_bit(occupancy_boards[Color::Both], d8) && !get_bit(occupancy_boards[Color::Both], c8) && !get_bit(occupancy_boards[Color::Both], b8) && !is_square_attacked(c8, Color::White) && !is_square_attacked(d8, Color::White))
 				moves.push_back((static_cast<uint16_t>(start) << 8) | c8);
 		}
 
@@ -74,15 +74,15 @@ std::vector<uint16_t> BitBoard::generate_moves(const BitBoardGlobals& globals)
 				start = get_least_significant_bit(current_piece_board);
 
 				if (piece == Piece::White_Knight || piece == Piece::Black_Knight)
-					current_piece_attacks = globals.knight_masks[start] & (~occupancy_boards[side_to_move]);
+					current_piece_attacks = BitBoardGlobals::globals.knight_masks[start] & (~occupancy_boards[side_to_move]);
 				else if (piece == Piece::White_King || piece == Piece::Black_King)
-					current_piece_attacks = globals.king_masks[start] & (~occupancy_boards[side_to_move]);
+					current_piece_attacks = BitBoardGlobals::globals.king_masks[start] & (~occupancy_boards[side_to_move]);
 				else if (piece == Piece::White_Rook || piece == Piece::Black_Rook)
-					current_piece_attacks = globals.get_rook_attacks(start, occupancy_boards[Color::Both]) & (~occupancy_boards[side_to_move]);
+					current_piece_attacks = BitBoardGlobals::globals.get_rook_attacks(start, occupancy_boards[Color::Both]) & (~occupancy_boards[side_to_move]);
 				else if (piece == Piece::White_Bishop || piece == Piece::Black_Bishop)
-					current_piece_attacks = globals.get_bishop_attacks(start, occupancy_boards[Color::Both]) & (~occupancy_boards[side_to_move]);
+					current_piece_attacks = BitBoardGlobals::globals.get_bishop_attacks(start, occupancy_boards[Color::Both]) & (~occupancy_boards[side_to_move]);
 				else
-					current_piece_attacks = globals.get_queen_attacks(start, occupancy_boards[Color::Both]) & (~occupancy_boards[side_to_move]);
+					current_piece_attacks = BitBoardGlobals::globals.get_queen_attacks(start, occupancy_boards[Color::Both]) & (~occupancy_boards[side_to_move]);
 
 				while (current_piece_attacks)
 				{
@@ -172,6 +172,7 @@ void BitBoard::handle_castling(uint16_t move)
 
 void BitBoard::move_piece(uint16_t move)
 {
+	last_move_is_capture = false;
 	// Roque
 	handle_castling(move);
 
@@ -191,12 +192,16 @@ void BitBoard::move_piece(uint16_t move)
 
 	if (target == en_passant && (moved_piece == Piece::White_Pawn || moved_piece == Piece::Black_Pawn))
 	{
-		pop_bit(occupancy_boards[Color(!side_to_move)], en_passant);
-		pop_bit(occupancy_boards[Color::Both], en_passant);
+		uint8_t pop_at = en_passant + (moved_piece == Piece::White_Pawn ? 8 : -8);
+		pop_bit(occupancy_boards[Color(!side_to_move)], pop_at);
+		pop_bit(occupancy_boards[Color::Both], pop_at);
+		for (uint8_t i = !side_to_move; i < 12; i+=2)
+			pop_bit(piece_boards[i], pop_at);
+		last_move_is_capture = true;
 	}
 
 	if ((moved_piece == Piece::White_Pawn || moved_piece == Piece::Black_Pawn) && abs(target - start) == 16)
-		en_passant = target % 8 + (start / 8 + (target / 8 - start / 8) / 2);
+		en_passant = target % 8 + ((start / 8 + (target / 8 - start / 8) / 2) * 8);
 	else
 		en_passant = No_Square;
 
@@ -206,6 +211,7 @@ void BitBoard::move_piece(uint16_t move)
 	set_bit(occupancy_boards[side_to_move], target);
 	if (get_bit(occupancy_boards[!side_to_move], target))
 	{
+		last_move_is_capture = true;
 		pop_bit(occupancy_boards[!side_to_move], target);
 		for (uint8_t i = !side_to_move; i < 12; i+=2)
 			pop_bit(piece_boards[i], target);

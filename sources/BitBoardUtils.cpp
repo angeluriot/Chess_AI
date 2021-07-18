@@ -39,114 +39,104 @@ void print_bitboard(uint64_t board)
 	std::cout << "\n   a b c d e f g h\n\nBitboard: " << board << std::endl;
 }
 
-int BitBoard::get_score(const BitBoardGlobals& globals)
+int BitBoard::get_score()
 {
 	int score = 0;
 
 	for (uint8_t i = 0; i < 12; i++)
+	{
+		uint64_t current_piece_board = piece_boards[i];
+		while (current_piece_board)
+		{
+			uint8_t square = get_least_significant_bit(current_piece_board);
+			uint8_t table_square = square;
+			// Inverse le y de la case pour les noirs
+			if (get_bit(occupancy_boards[Color::Black], square))
+				table_square = (square % 8) + ((7 - (square / 8)) * 8);
+			if (half_turn < 50)
+				score += BitBoardGlobals::globals.middle_game_tables[i / 2][table_square] * (side_to_move == Color::White ? 1 : -1);
+			else
+				score += BitBoardGlobals::globals.end_game_tables[i / 2][table_square] * (side_to_move == Color::White ? 1 : -1);
+			pop_bit(current_piece_board, square);
+		}
 		score += get_value(i) * count_bits(piece_boards[i]);
+	}
 
 	Color side_save = side_to_move;
 
-	side_to_move = Color::White;
-	score += generate_moves(globals).size();
+/*	side_to_move = Color::White;
+	auto white_moves = generate_moves();
+	score += white_moves.size();
 	side_to_move = Color::Black;
-	score -= generate_moves(globals).size();
-	side_to_move = side_save;
+	auto black_moves = generate_moves();
+	score -= black_moves.size();
+	side_to_move = side_save;*/
 
-/*	uint8_t white_bishop = 0, black_bishop = 0;
+	if (count_bits(piece_boards[Piece::White_Bishop]) >= 2)
+		score += 15;
+	if (count_bits(piece_boards[Piece::Black_Bishop]) >= 2)
+		score -= 15;
 
-	// Valeur des pièces et activité
-	for (uint8_t i = 2; i < 10; i++)
+	uint64_t king_mask = BitBoardGlobals::globals.get_king_threats_mask(get_least_significant_bit(piece_boards[Piece::White_King]));
+	while (king_mask)
 	{
-		for (uint8_t j = 2; j < 10; j++)
-		{
-			Type& type = board[i][j];
-			if (type == Type::No_Piece)
-				continue;
-
-			// Bishop pair
-			if (type == Type::White_Bishop)
-				white_bishop++;
-			else if (type == Type::Black_Bishop)
-				black_bishop++;
-
-			// Knight supported by a pawn
-			if (type == Type::White_Knight && (board[i + 1][j + 1] == Type::White_Pawn || board[i - 1][j + 1] == Type::White_Pawn))
-				score += 20;
-			else if (type == Type::Black_Knight && (board[i + 1][j - 1] == Type::Black_Pawn || board[i - 1][j - 1] == Type::Black_Pawn))
-				score += 20;
-
-			// Pions passés
-			if (board[i][j] == Type::White_Pawn &&
-					std::count(board[i - 1].rbegin() + (12 - j), board[i - 1].rend(), Type::Black_Pawn) == 0 &&
-					std::count(board[i + 1].rbegin() + (12 - j), board[i + 1].rend(), Type::Black_Pawn) == 0 &&
-					std::count_if(board[i].rbegin() + (12 - j), board[i].rend(), [](const Type& val) { return std::abs(val) == Type::White_Pawn; }) == 0)
-				score += 50 + (10 - j) * 30;
-			else if (board[i][j] == Type::Black_Pawn &&
-					std::count(board[i - 1].begin() + j, board[i - 1].end(), Type::White_Pawn) == 0 &&
-					std::count(board[i + 1].begin() + j, board[i + 1].end(), Type::White_Pawn) == 0 &&
-					std::count_if(board[i].begin() + j, board[i].end(), [](const Type& val) { return std::abs(val) == Type::Black_Pawn; }) == 0)
-				score -= 50 + (j - 2) * 30;
-
-
-			// Matériel
-			score += get_value(type);
-
-			int abs = std::abs(type);
-			if (!(half_turn > 40 && abs == Type::White_King))
-				score += tables.find(type)->second[(j - 2) * 8 + (i - 2)] * get_color(type);
-		}
-
-		// Pions doublés
-		score -= 30 * (static_cast<int>(std::count(board[i].begin(), board[i].end(), Type::White_Pawn)) >= 2 ? 0 : 1);
-		score += 30 * (static_cast<int>(std::count(board[i].begin(), board[i].end(), Type::Black_Pawn)) >= 2 ? 0 : 1);
+		uint8_t square = get_least_significant_bit(king_mask);
+		if (is_square_attacked(square, Color::Black))
+			score -= 48;
+		pop_bit(king_mask, square);
 	}
 
-	if (white_bishop >= 2)
-		score += 25;
-	if (black_bishop >= 2)
-		score -= 25;*/
-
-/*	for (uint8_t i = 2; i < 10; i++)
+	king_mask = BitBoardGlobals::globals.get_king_threats_mask(get_least_significant_bit(piece_boards[Piece::Black_King]));
+	while (king_mask)
 	{
-		bool white_isolated = false, black_isolated = false;
+		uint8_t square = get_least_significant_bit(king_mask);
+		if (is_square_attacked(square, Color::White))
+			score += 48;
+		pop_bit(king_mask, square);
+	}
 
-		for (uint8_t j = 2; j < 10; j++)
-		{
-			// Pions isolés
-			if (!white_isolated && board[i][j] == Type::White_Pawn &&
-				std::count(board[i - 1].begin(), board[i - 1].end(), Type::White_Pawn) == 0 &&
-				std::count(board[i + 1].begin(), board[i + 1].end(), Type::White_Pawn) == 0)
-			{
-				score -= 30;
-				white_isolated = true;
-			}
-			else if (!black_isolated && board[i][j] == Type::Black_Pawn &&
-				std::count(board[i - 1].begin(), board[i - 1].end(), Type::Black_Pawn) == 0 &&
-				std::count(board[i + 1].begin(), board[i + 1].end(), Type::Black_Pawn) == 0)
-			{
-				black_isolated = true;
-				score += 30;
-			}
+	if (is_square_attacked(get_least_significant_bit(piece_boards[Piece::White_King]), Color::Black))
+		score -= 48;
+	if (is_square_attacked(get_least_significant_bit(piece_boards[Piece::Black_King]), Color::White))
+		score += 48;
 
-			// Pions bloqués
-			if (board[i][j] == Type::White_Pawn && board[i][j - 1] != Type::No_Piece)
-				score -= 30;
-			else if (board[i][j] == Type::Black_Pawn && board[i][j + 1] != Type::No_Piece)
-				score += 30;
+	for (uint8_t i = 0; i < 8; i++)
+	{
+		// Pions doublés
+		uint8_t w_pawn_on_i = count_bits(piece_boards[Piece::White_Pawn] & (~BitBoardGlobals::globals.not_col[i]));
+		uint8_t b_pawn_on_i = count_bits(piece_boards[Piece::Black_Pawn] & (~BitBoardGlobals::globals.not_col[i]));
+		if (w_pawn_on_i > 1)
+			score -= 25;
+		if (b_pawn_on_i > 1)
+			score += 25;
 
-			if (board[i][j] == Type::White_Pawn &&
-					std::count(board[i - 1].rbegin() + (12 - j), board[i - 1].rend(), Type::Black_Pawn) == 0 &&
-					std::count(board[i + 1].rbegin() + (12 - j), board[i + 1].rend(), Type::Black_Pawn) == 0 &&
-					std::count_if(board[i].rbegin() + (12 - j), board[i].rend(), [](const Type& val) { return std::abs(val) == Type::White_Pawn; }) == 0)
-				score += 50;
-			else if (board[i][j] == Type::Black_Pawn &&
-				std::count(board[i - 1].begin() + j, board[i - 1].end(), Type::White_Pawn) == 0 &&
-				std::count(board[i + 1].begin() + j, board[i + 1].end(), Type::White_Pawn) == 0 &&
-				std::count_if(board[i].begin() + j, board[i].end(), [](const Type& val) { return std::abs(val) == Type::Black_Pawn; }) == 0)
-				score -= 50;
-		}
-	}*/
+		// Pions isolés
+		if ((i == a || count_bits(piece_boards[Piece::White_Pawn] & (~BitBoardGlobals::globals.not_col[i - 1])) == 0) &&
+			(i == h || count_bits(piece_boards[Piece::White_Pawn] & (~BitBoardGlobals::globals.not_col[i + 1])) == 0))
+			score -= 20;
+		if ((i == a || count_bits(piece_boards[Piece::Black_Pawn] & (~BitBoardGlobals::globals.not_col[i - 1])) == 0) &&
+			(i == h || count_bits(piece_boards[Piece::Black_Pawn] & (~BitBoardGlobals::globals.not_col[i + 1])) == 0))
+			score += 20;
+	}
+
+	// Knight supported by a pawn
+	uint64_t knights = piece_boards[Piece::White_Knight];
+	while (knights)
+	{
+		uint8_t square = get_least_significant_bit(knights);
+		if (BitBoardGlobals::globals.pawn_masks.find(Color::Black)->second[square] & piece_boards[Piece::White_Pawn])
+			score += 6;
+		pop_bit(knights, square);
+	}
+
+	knights = piece_boards[Piece::Black_Knight];
+	while (knights)
+	{
+		uint8_t square = get_least_significant_bit(knights);
+		if (BitBoardGlobals::globals.pawn_masks.find(Color::White)->second[square] & piece_boards[Piece::Black_Pawn])
+			score += 6;
+		pop_bit(knights, square);
+	}
+
 	return score;
 }

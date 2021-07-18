@@ -71,6 +71,8 @@ struct BitBoardGlobals
 	std::array<uint64_t, 64> knight_masks, king_masks, bishop_masks, rook_masks;
 	std::array<std::array<uint64_t, 4096>, 64> rook_attacks;
 	std::array<std::array<uint64_t, 512>, 64> bishop_attacks;
+	std::array<std::array<int, 64>, 12> middle_game_tables;
+	std::array<std::array<int, 64>, 12> end_game_tables;
 	std::array<uint64_t, 781> zobrist_keys;
 
 	BitBoardGlobals();
@@ -113,6 +115,9 @@ struct BitBoardGlobals
 	private:
 		void init_sliders_attacks(Piece piece);
 		uint64_t find_magic_number(uint8_t square, uint8_t relevant, bool is_rook) const;
+
+	public:
+		static BitBoardGlobals globals;
 };
 
 inline bool get_bit(const uint64_t& board, uint8_t bit) { return (board & (1ULL << bit)) ? true : false; }
@@ -133,6 +138,7 @@ public:
 	uint16_t half_turn;
 	uint8_t clicked_cell;
 	uint16_t last_move;
+	bool last_move_is_capture;
 
 	BitBoard() = default;
 	BitBoard(const BitBoard& other);
@@ -140,17 +146,17 @@ public:
 	void operator=(const BitBoard& other);
 
 	void draw_pieces(sf::RenderWindow& window, std::map<Piece, sf::Texture>& textures, float cell_size);
-	std::vector<uint16_t> generate_moves(const BitBoardGlobals& globals);
-	bool is_square_attacked(const BitBoardGlobals& globals, uint8_t square, Color color);
+	std::vector<uint16_t> generate_moves();
+	bool is_square_attacked(uint8_t square, Color color);
 	void move_piece(uint16_t move);
 	void handle_castling(uint16_t move);
-	void check_click_on_piece(const BitBoardGlobals& globals, const sf::RenderWindow& window, float cell_size, BitBoard* last_board = nullptr);
+	void check_click_on_piece(const sf::RenderWindow& window, float cell_size, BitBoard* last_board = nullptr);
 	void draw_last_move(sf::RenderWindow& window, std::map<Piece, sf::Texture>& textures, float cell_size);
 	bool is_finished() const;
 	BitBoard get_moved_board(uint16_t move) const;
-	uint64_t signature_hash(const BitBoardGlobals& globals);
+	uint64_t signature_hash();
 	uint8_t piece_at(uint8_t square) const;
-	int get_score(const BitBoardGlobals& globals);
+	int get_score();
 };
 
 #endif

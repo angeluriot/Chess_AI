@@ -6,14 +6,54 @@
 #include <random>
 #include "OpeningBook.h"
 
-Computer::Computer()
+bool Computer::compare_moves(BitBoard& board, uint16_t a, uint16_t b)
 {
-	transposition_table.resize(67108864, PositionSave{0, -1, 0, true, NodeType::EXACT, No_Square});
+	uint64_t a_hash = board.get_moved_board(a).signature_hash();
+	uint64_t b_hash = board.get_moved_board(b).signature_hash();
+
+	bool a_in_tt = transposition_table[a_hash % transposition_table.size()].depth != -1 && transposition_table[a_hash % transposition_table.size()].hash == a_hash;
+	bool b_in_tt = transposition_table[b_hash % transposition_table.size()].depth != -1 && transposition_table[b_hash % transposition_table.size()].hash == b_hash;
+	if (a_in_tt != b_in_tt)
+		return transposition_table[a_hash % transposition_table.size()].depth >= transposition_table[b_hash % transposition_table.size()].depth;
+
+	uint8_t a_start = (a & 0xFF00) >> 8, b_start = (b & 0xFF00) >> 8, a_target = (a & 0xFF), b_target = (b & 0xFF);
+
+	uint8_t piece_at_a_target = board.piece_at(a_target), piece_at_b_target = board.piece_at(b_target);
+	uint8_t piece_at_a_start = board.piece_at(a_start), piece_at_b_start = board.piece_at(b_start);
+
+	int a_capture_score = std::abs(get_value(piece_at_a_target)) - std::abs(get_value(piece_at_a_start));
+	int b_capture_score = std::abs(get_value(piece_at_b_target)) - std::abs(get_value(piece_at_b_start));
+	if (a_capture_score != b_capture_score)
+		return a_capture_score > b_capture_score;
+
+	return true;
 }
 
-std::pair<uint16_t, int> Computer::find_move(const BitBoardGlobals& globals, BitBoard board, uint8_t depth, int alpha, int beta, bool maximize)
+void Computer::sort_moves(BitBoard& board, std::vector<uint16_t>& moves, uint16_t max)
 {
-	uint64_t hash = board.signature_hash(globals);
+	int min_idx = -1;
+
+    for (auto i = 0; i < max && i < moves.size(); i++)
+    {
+		min_idx = i;
+		for (auto j = i + 1; j < moves.size(); j++)
+			if (compare_moves(board, moves[j], moves[min_idx]))
+				min_idx = j;
+
+		int tmp = moves[min_idx];
+		moves[min_idx] = moves[i];
+		moves[i] = tmp;
+	}
+}
+
+Computer::Computer()
+{
+	transposition_table.resize(128000000, PositionSave{0, -1, 0, true, NodeType::EXACT, No_Square});
+}
+
+std::pair<uint16_t, int> Computer::find_move(BitBoard board, uint8_t depth, int alpha, int beta, bool maximize, const std::chrono::high_resolution_clock::time_point& begin)
+{
+	uint64_t hash = board.signature_hash();
 
 	auto& tt_pos = transposition_table[hash % transposition_table.size()];
 	int alpha_original = alpha;
@@ -36,43 +76,32 @@ std::pair<uint16_t, int> Computer::find_move(const BitBoardGlobals& globals, Bit
 		if (alpha >= beta)
 			return std::make_pair(tt_pos.best_move, tt_pos.score);
 	}
-	if (depth == 0 || board.is_finished())
-		return std::make_pair(No_Square, (maximize ? 1 : -1) * board.get_score(globals));
+	if (board.is_finished())
+		return std::make_pair(No_Square, (maximize ? 1 : -1) * (board.piece_boards[Piece::White_King] == 0 ? -999999 : 999999));
+	if (depth == 0)
+		return std::make_pair(No_Square, (maximize ? 1 : -1) * board.get_score());
 
 	int best_score = std::numeric_limits<int>::min() + 1;
 	uint16_t best_move = No_Square;
-	auto move_list = board.generate_moves(globals);
+	auto move_list = board.generate_moves();
 
 	std::sort(move_list.begin(), move_list.end(), [board](uint16_t a, uint16_t b) {
 		uint8_t a_start = ((a & 0xFF00) >> 8), a_target = a & 0xFF;
 		uint8_t b_start = ((b & 0xFF00) >> 8), b_target = b & 0xFF;
 
-		int a_score = 0;
-		int b_score = 0;
-
-		uint8_t piece_at_a_target = board.piece_at(a_target);
-		uint8_t piece_at_b_target = board.piece_at(b_target);
-		//uint8_t piece_at_a_start = board.piece_at(a_start);
-		//uint8_t piece_at_b_start = board.piece_at(b_start);
-
-
-		// Capture
-		if (a_target != No_Piece)
-			a_score += std::abs(get_value(piece_at_a_target)) /*- (std::abs(get_value(piece_at_a_start)) / 10)*/;
-		if (b_target != No_Piece)
-			b_score += std::abs(get_value(piece_at_b_target)) /*- (std::abs(get_value(piece_at_b_start)) / 10)*/;
-
-		if (a_target == board.last_move & 0xFF)
-			a_score += 1001;
-		if (b_target == board.last_move & 0xFF)
-			b_score += 1001;
+		int a_score = std::abs(get_value(board.piece_at(a_target))) - std::abs(get_value(board.piece_at(a_start)));
+		int b_score = std::abs(get_value(board.piece_at(b_target))) - std::abs(get_value(board.piece_at(b_start)));
 
 		return a_score > b_score;
 	});
 
 	for (auto& move : move_list)
 	{
-		int score = -find_move(globals, board.get_moved_board(move), depth - 1, -beta, -alpha, !maximize).second;
+		if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - begin).count() >= 8)
+			return std::make_pair(No_Square, -12345678);
+		int score = -find_move(board.get_moved_board(move), depth - 1, -beta, -alpha, !maximize, begin).second;
+		if (score == -12345678)
+			return std::make_pair(best_move, best_score);
 		if (best_score < score)
 		{
 			best_score = score;
@@ -95,17 +124,31 @@ std::pair<uint16_t, int> Computer::find_move(const BitBoardGlobals& globals, Bit
 	return std::make_pair(best_move, best_score);
 }
 
-void Computer::move(const BitBoardGlobals& globals, BitBoard& board, uint8_t depth)
+void Computer::move(BitBoard& board)
 {
 	static OpeningBook opening_book("./Perfect_2021/BIN/Perfect2021.bin");
 
-	auto book_move = opening_book.book_move(globals, board);
+
+	auto book_move = opening_book.book_move(board);
 	if (board.half_turn < 1000 && book_move.first != No_Square)
 		board.move_piece(book_move.first);
 	else
 	{
-		for (auto& tt_pos : transposition_table)
-			tt_pos.ancient = true;
-		board.move_piece(find_move(globals, board, depth, -1000000000, 1000000000, board.side_to_move == Color::White).first);
+		std::chrono::high_resolution_clock::time_point begin = std::chrono::high_resolution_clock::now();
+		uint8_t depth = 1;
+		uint16_t best_move = No_Square;
+		while (depth < 8)
+		{
+			for (auto& tt_pos : transposition_table)
+				tt_pos.ancient = true;
+			auto ret = find_move(board, depth, std::numeric_limits<int>::min() + 1, std::numeric_limits<int>::max(), board.side_to_move == Color::White, begin);
+			if (ret.second != -12345678)
+				best_move = ret.first;
+			else
+				break;
+			depth++;
+		}
+		if (best_move != No_Square)
+			board.move_piece(best_move);
 	}
 }

@@ -24,11 +24,11 @@ OpeningBook::~OpeningBook()
 		file.close();
 }
 
-std::pair<uint16_t, int> OpeningBook::book_move(const BitBoardGlobals& globals, BitBoard& board)
+std::pair<uint16_t, int> OpeningBook::book_move(BitBoard& board)
 {
 	OpeningBookEntry entry;
 	std::list<uint16_t> list;
-	uint64_t hash = board.signature_hash(globals);
+	uint64_t hash = board.signature_hash();
 
 	if (!file.good() || !file.is_open() || book_size == 0)
 		throw std::runtime_error("D");

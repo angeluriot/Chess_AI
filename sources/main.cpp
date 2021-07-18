@@ -66,12 +66,10 @@ void draw_grid(sf::RenderTexture& tex, float cell_size)
 int main()
 {
 	srand(time(NULL));
-	BitBoardGlobals globals;
 	sf::RenderWindow window;
 	init_window(window, "Chess AI");
 	bool end = false;
 	sf::RenderTexture grid_tex;
-	int depth = 6;
 	float cell_size = std::min(window.getSize().x, window.getSize().y) / 8.f;
 
 	bool space_pressed = false;
@@ -123,7 +121,7 @@ int main()
 			if (!space_pressed)
 			{
 				last_board = board;
-				computer.move(globals, board, depth);
+				computer.move(board);
 			}
 			space_pressed = true;
 		}
@@ -139,25 +137,7 @@ int main()
 		else
 			left_pressed = false;
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-		{
-			if (!up_pressed)
-				depth = std::min(depth + 1, 20);
-			up_pressed = true;
-		}
-		else
-			up_pressed = false;
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-		{
-			if (!down_pressed)
-				depth = std::max(depth - 1, 2);
-			down_pressed = true;
-		}
-		else
-			down_pressed = false;
-
-		board.check_click_on_piece(globals, window, cell_size, &last_board);
+		board.check_click_on_piece(window, cell_size, &last_board);
 
 		window.display();
 	}

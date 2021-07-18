@@ -24,7 +24,7 @@ class OpeningBook
 		OpeningBook(const std::string& name);
 		virtual ~OpeningBook();
 
-		std::pair<uint16_t, int> book_move(const BitBoardGlobals& globals, BitBoard& board);
+		std::pair<uint16_t, int> book_move(BitBoard& board);
 
 	private:
 		int find_pos(uint64_t key);

@@ -2,8 +2,8 @@
 #define COMPUTER_H
 
 #include "utils.h"
-//#include "OpeningBook.h"
 #include "BitBoard.h"
+#include <chrono>
 
 enum NodeType : uint8_t
 {
@@ -29,8 +29,10 @@ public:
 
 	Computer();
 
-	std::pair<uint16_t, int> find_move(const BitBoardGlobals& globals, BitBoard board, uint8_t depth, int alpha, int beta, bool maximize);
-	void move(const BitBoardGlobals& globals, BitBoard& board, uint8_t depth);
+	std::pair<uint16_t, int> find_move(BitBoard board, uint8_t depth, int alpha, int beta, bool maximize, const std::chrono::high_resolution_clock::time_point& begin);
+	bool compare_moves(BitBoard& board, uint16_t a, uint16_t b);
+	void sort_moves(BitBoard& board, std::vector<uint16_t>& moves, uint16_t max);
+	void move(BitBoard& board);
 };
 
 #endif

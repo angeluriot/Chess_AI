@@ -1,5 +1,6 @@
 #include "BitBoard.h"
-#include "Position.h"
+
+BitBoardGlobals BitBoardGlobals::globals = BitBoardGlobals();
 
 /*
 **  ==============================
@@ -19,6 +20,7 @@ BitBoard::BitBoard(const BitBoard& other)
 	half_turn = other.half_turn;
 	clicked_cell = other.clicked_cell;
 	last_move = other.last_move;
+	last_move_is_capture = other.last_move_is_capture;
 }
 
 void BitBoard::operator=(const BitBoard& other)
@@ -31,6 +33,7 @@ void BitBoard::operator=(const BitBoard& other)
 	half_turn = other.half_turn;
 	clicked_cell = other.clicked_cell;
 	last_move = other.last_move;
+	last_move_is_capture = other.last_move_is_capture;
 }
 
 
@@ -140,26 +143,26 @@ bool BitBoard::is_finished() const
 	return count_bits(piece_boards[Piece::White_King]) == 0 || count_bits(piece_boards[Piece::Black_King]) == 0;
 }
 
-bool BitBoard::is_square_attacked(const BitBoardGlobals& globals, uint8_t square, Color color)
+bool BitBoard::is_square_attacked(uint8_t square, Color color)
 {
-	if (color == Color::White && piece_boards[Piece::White_Pawn] & globals.pawn_masks.find(Color::Black)->second[square])
+	if (color == Color::White && piece_boards[Piece::White_Pawn] & BitBoardGlobals::globals.pawn_masks.find(Color::Black)->second[square])
 		return true;
-	if (color == Color::Black && piece_boards[Piece::Black_Pawn] & globals.pawn_masks.find(Color::White)->second[square])
+	if (color == Color::Black && piece_boards[Piece::Black_Pawn] & BitBoardGlobals::globals.pawn_masks.find(Color::White)->second[square])
 		return true;
-	if (globals.knight_masks[square] & (color == Color::White ? piece_boards[Piece::White_Knight] : piece_boards[Piece::Black_Knight]))
+	if (BitBoardGlobals::globals.knight_masks[square] & (color == Color::White ? piece_boards[Piece::White_Knight] : piece_boards[Piece::Black_Knight]))
 		return true;
-	if (globals.king_masks[square] & (color == Color::White ? piece_boards[Piece::White_King] : piece_boards[Piece::Black_King]))
+	if (BitBoardGlobals::globals.king_masks[square] & (color == Color::White ? piece_boards[Piece::White_King] : piece_boards[Piece::Black_King]))
 		return true;
-	if (globals.get_bishop_attacks(square, occupancy_boards[Color::Both]) & (color == Color::White ? piece_boards[Piece::White_Bishop] : piece_boards[Piece::Black_Bishop]))
+	if (BitBoardGlobals::globals.get_bishop_attacks(square, occupancy_boards[Color::Both]) & (color == Color::White ? piece_boards[Piece::White_Bishop] : piece_boards[Piece::Black_Bishop]))
 		return true;
-	if (globals.get_rook_attacks(square, occupancy_boards[Color::Both]) & (color == Color::White ? piece_boards[Piece::White_Rook] : piece_boards[Piece::Black_Rook]))
+	if (BitBoardGlobals::globals.get_rook_attacks(square, occupancy_boards[Color::Both]) & (color == Color::White ? piece_boards[Piece::White_Rook] : piece_boards[Piece::Black_Rook]))
 		return true;
-	if (globals.get_queen_attacks(square, occupancy_boards[Color::Both]) & (color == Color::White ? piece_boards[Piece::White_Queen] : piece_boards[Piece::Black_Queen]))
+	if (BitBoardGlobals::globals.get_queen_attacks(square, occupancy_boards[Color::Both]) & (color == Color::White ? piece_boards[Piece::White_Queen] : piece_boards[Piece::Black_Queen]))
 		return true;
 	return false;
 }
 
-uint64_t BitBoard::signature_hash(const BitBoardGlobals& globals)
+uint64_t BitBoard::signature_hash()
 {
 	uint64_t ret = 0;
 
@@ -169,33 +172,33 @@ uint64_t BitBoard::signature_hash(const BitBoardGlobals& globals)
 		while (board)
 		{
 			uint8_t square = get_least_significant_bit(board);
-			ret ^= globals.get_key(i, square);
+			ret ^= BitBoardGlobals::globals.get_key(i, square);
 			pop_bit(board, square);
 		}
 	}
 
 	if (allowed_castle & WK)
-		ret ^= globals.zobrist_keys[64 * 12 + 0];
+		ret ^= BitBoardGlobals::globals.zobrist_keys[64 * 12 + 0];
 	if (allowed_castle & WQ)
-		ret ^= globals.zobrist_keys[64 * 12 + 1];
+		ret ^= BitBoardGlobals::globals.zobrist_keys[64 * 12 + 1];
 	if (allowed_castle & BK)
-		ret ^= globals.zobrist_keys[64 * 12 + 2];
+		ret ^= BitBoardGlobals::globals.zobrist_keys[64 * 12 + 2];
 	if (allowed_castle & BQ)
-		ret ^= globals.zobrist_keys[64 * 12 + 3];
+		ret ^= BitBoardGlobals::globals.zobrist_keys[64 * 12 + 3];
 
-/*	if (en_passant != No_Square /*&&
-			((std::abs(board[en_passant.x - 1][en_passant.y]) == Type::White_Pawn && get_color(board[en_passant.x - 1][en_passant.y]) != get_color(board[en_passant.x][en_passant.y])) ||
-			(std::abs(board[en_passant.x + 1][en_passant.y]) == Type::White_Pawn && get_color(board[en_passant.x + 1][en_passant.y]) != get_color(board[en_passant.x][en_passant.y])))
-		ret ^= globals.zobrist_keys[64 * 12 + 4 + (en_passant % 8)];*/
+	if (en_passant != No_Square && BitBoardGlobals::globals.pawn_masks.find(Color(!side_to_move))->second[en_passant] & piece_boards[side_to_move == Color::White ? Piece::White_Pawn : Piece::Black_Pawn])
+		ret ^= BitBoardGlobals::globals.zobrist_keys[64 * 12 + 4 + (en_passant % 8)];
 
 	if (side_to_move == Color::White)
-		ret ^= globals.zobrist_keys[64 * 12 + 4 + 8];
+		ret ^= BitBoardGlobals::globals.zobrist_keys[64 * 12 + 4 + 8];
 	return ret;
 }
 
 uint8_t BitBoard::piece_at(uint8_t square) const
 {
-	for (uint8_t i = 0; i < 12; i++)
+	if (!get_bit(occupancy_boards[Color::Both], square))
+		return No_Piece;
+	for (uint8_t i = (get_bit(occupancy_boards[Color::White], square) ? 0 : 1); i < 12; i+=2)
 		if (get_bit(piece_boards[i], square))
 			return i;
 	return No_Piece;
@@ -238,7 +241,7 @@ void BitBoard::draw_pieces(sf::RenderWindow& window, std::map<Piece, sf::Texture
 	window.draw(tex_spr);
 }
 
-void BitBoard::check_click_on_piece(const BitBoardGlobals& globals, const sf::RenderWindow& window, float cell_size, BitBoard* last_board)
+void BitBoard::check_click_on_piece(const sf::RenderWindow& window, float cell_size, BitBoard* last_board)
 {
 	static bool clicked_last_frame = false;
 
@@ -262,7 +265,7 @@ void BitBoard::check_click_on_piece(const BitBoardGlobals& globals, const sf::Re
 
 	if (clicked_cell != No_Square)
 	{
-		auto moves = generate_moves(globals);
+		auto moves = generate_moves();
 		auto move_it = std::find(moves.begin(), moves.end(), (clicked_cell << 8) | cell_pos);
 		if (move_it != moves.end())
 		{
