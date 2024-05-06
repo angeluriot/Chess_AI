@@ -1,4 +1,4 @@
-# Chess AI
+# ♟️ Chess AI
 
 ![Release](https://img.shields.io/badge/Release-alpha-blueviolet)
 ![Language](https://img.shields.io/badge/Language-C%2B%2B-0052cf)
@@ -20,13 +20,17 @@ This program use the Minimax algorithm to choose the best move in chess.
 
 <br/>
 
-# Dependencies
+# 📋 Summary
 
-* SFML
+* **[📋 Summary](#-summary)**
+* **[✨ Features](#-features)**
+* **[📦 Dependencies](#-dependencies)**
+* **[📝 Notes](#-notes)**
+* **[🙏 Credits](#-credits)**
 
 <br/>
 
-# Features
+# ✨ Features
 
 * Move a piece with the mouse.
 
@@ -34,13 +38,19 @@ This program use the Minimax algorithm to choose the best move in chess.
 
 <br/>
 
-# Notes
+# 📦 Dependencies
+
+* **[SFML](https://www.sfml-dev.org/)**
+
+<br/>
+
+# 📝 Notes
 
 * This project is still in progress.
 
 <br/>
 
-# Credits
+# 🙏 Credits
 
 * [**Angel Uriot**](https://github.com/angeluriot) : Creator of the project.
 
