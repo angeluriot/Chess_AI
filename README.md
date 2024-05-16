@@ -53,5 +53,4 @@ This program use the Minimax algorithm to choose the best move in chess.
 # 🙏 Credits
 
 * [**Angel Uriot**](https://github.com/angeluriot) : Creator of the project.
-
 * [**Maxime Bourand**](https://github.com/mbourand) : Creator of the project.
