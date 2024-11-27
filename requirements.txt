@@ -1,0 +1,5 @@
+torch
+flash-attn
+datasets
+tqdm
+psutil
