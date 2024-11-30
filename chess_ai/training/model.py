@@ -105,7 +105,7 @@ class Model(Module):
 		#self.token_embedding.weight = self.final_linear.weight
 
 
-	def forward(self, input: torch.Tensor, only_last: bool = False) -> torch.Tensor:
+	def forward(self, input: torch.Tensor) -> torch.Tensor:
 
 		if input.shape[1] > MAX_CONTEXT:
 			input = input[:, -MAX_CONTEXT:]
@@ -120,8 +120,5 @@ class Model(Module):
 			x = block(x, rope_frequencies)
 
 		x = self.final_norm(x)
-
-		if only_last:
-			return self.final_linear(x[:, -1])
 
 		return self.final_linear(x)

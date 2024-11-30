@@ -35,7 +35,7 @@ class Sampler():
 
 			move = random.choice(list(self.board.legal_moves))
 
-			while self.board.san(move).endswith('#'):
+			while '#' in self.board.san(move):
 				move = random.choice(list(self.board.legal_moves))
 
 			self.apply_move(move)
@@ -62,7 +62,7 @@ class Sampler():
 			return possible_moves[0]
 
 		for possible_move in possible_moves:
-			if self.board.san(possible_move).endswith('#'):
+			if '#' in self.board.san(possible_move):
 				self.apply_move(possible_move)
 				return possible_move
 
@@ -81,24 +81,27 @@ class Sampler():
 			input.extend([PADDING_TOKEN] * (max_length - len(input)))
 			inputs.append(input[:-1])
 
-		with torch.no_grad(), CONTEXT:
+		with torch.no_grad():
 
 			input_tensor = torch.tensor(inputs, dtype = torch.long, device = DEVICE)
-			output: torch.Tensor = self.model(input_tensor)
 
-		output = output.float().detach().to('cpu')
-		output = output[:, len(self.input) - 1:]
-		output = torch.softmax(output, dim = -1)
+			with CONTEXT:
+				output: torch.Tensor = self.model(input_tensor)
 
-		move_likelihoods = []
+			output = output.float().detach().to('cpu')
+			output = output[:, len(self.input) - 1:]
+			output = torch.softmax(output, dim = -1)
 
-		for i, move in enumerate(moves):
+			move_likelihoods = []
 
-			probabilities = output[i, list(range(len(move))), move]
-			likelihood = torch.prod(probabilities).item()
-			move_likelihoods.append(likelihood)
+			for i, move in enumerate(moves):
 
-		best = torch.argmax(torch.tensor(move_likelihoods)).item()
+				probabilities = output[i, list(range(len(move))), move]
+				likelihood = torch.prod(probabilities).item()
+				move_likelihoods.append(likelihood)
+
+			best = torch.argmax(torch.tensor(move_likelihoods)).item()
+
 		final_move = possible_moves[best]
 		self.apply_move(final_move)
 

@@ -83,4 +83,4 @@ class Embedding(nn.Embedding):
 
 		super().__init__(num_embeddings, embedding_dim, padding_idx = PADDING_TOKEN, **kwargs)
 		nn.init.normal_(self.weight, mean = 0.0, std = INIT_STDDEV)
-
+		super()._fill_padding_idx_with_zero()

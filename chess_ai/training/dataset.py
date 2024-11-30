@@ -10,7 +10,7 @@ class Dataset(IterableDataset):
 
 	def __init__(self, path: str):
 
-		self.data = np.memmap(path, dtype = np.uint16, mode = 'r')
+		self.data = np.memmap(path, dtype = np.uint8, mode = 'r')
 		self.size = len(self.data)
 
 
