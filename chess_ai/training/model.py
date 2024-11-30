@@ -2,6 +2,7 @@ import torch, math
 from torch import nn
 from flash_attn import flash_attn_func
 
+from chess_ai.data.tokenizer import Tokenizer
 from chess_ai.training.layers import *
 from chess_ai.settings import *
 from chess_ai.training.rope import *
@@ -92,28 +93,34 @@ class TransformerBlock(Module):
 # Model
 class Model(Module):
 
-	def __init__(self, vocab_size: int, **kwargs):
+	def __init__(self, tokenizer: Tokenizer, **kwargs):
 
 		super().__init__(**kwargs)
 
-		self.token_embedding = Embedding(vocab_size, EMBEDDING_DIM)
+		self.token_embeddings = nn.ModuleList([Embedding(size, EMBEDDING_DIM) for size in tokenizer.layer_sizes])
 		self.rope_frequencies = create_rope_frequencies(HEAD_DIM, MAX_CONTEXT)
 		self.init_dropout = nn.Dropout(DROPOUT)
 		self.blocks = nn.ModuleList([TransformerBlock() for _ in range(NUM_BLOCKS)])
 		self.final_norm = LayerNorm(EMBEDDING_DIM)
-		self.final_linear = Linear(EMBEDDING_DIM, vocab_size)
+		self.final_linears = nn.ModuleList([Linear(EMBEDDING_DIM, size) for size in tokenizer.layer_sizes])
 		#self.token_embedding.weight = self.final_linear.weight
 
 
-	def forward(self, input: torch.Tensor, only_last: bool = False) -> torch.Tensor:
+	def forward(self, input: torch.Tensor) -> list[torch.Tensor]:
 
-		if input.shape[1] > MAX_CONTEXT:
-			input = input[:, -MAX_CONTEXT:]
+		# (batch_size, nb_layers, context_length)
+		if input.shape[2] > MAX_CONTEXT:
+			input = input[:, :, -MAX_CONTEXT:]
 
-		rope_frequencies = self.rope_frequencies[:input.shape[1]]
+		rope_frequencies = self.rope_frequencies[:input.shape[2]]
 		rope_frequencies = rope_frequencies[None, :, None, :]
 
-		x = self.token_embedding(input)
+		# (batch_size, context_length, embedding_dim)
+		x = self.token_embeddings[0](input[:, 0, :])
+
+		for i in range(1, len(self.token_embeddings)):
+			x += self.token_embeddings[i](input[:, i, :])
+
 		x = self.init_dropout(x)
 
 		for block in self.blocks:
@@ -121,7 +128,5 @@ class Model(Module):
 
 		x = self.final_norm(x)
 
-		if only_last:
-			return self.final_linear(x[:, -1])
-
-		return self.final_linear(x)
+		# nb_layers (batch_size, context_length, vocab_size)
+		return [linear(x) for linear in self.final_linears]

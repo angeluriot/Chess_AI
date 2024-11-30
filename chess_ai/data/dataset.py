@@ -31,11 +31,11 @@ class Dataset:
 		return self.dataset[i]
 
 
-	def game_to_tokens(self, game: dict[str, str | None | int | list[str]]) -> dict[str, npt.NDArray[np.uint16] | int]:
+	def game_to_tokens(self, game: dict[str, str | None | int | list[str]]) -> dict[str, npt.NDArray[np.uint8] | int]:
 
 		tokens = self.tokenizer.encode_game(game)
 
-		return {'tokens': np.array(tokens, dtype = np.uint16), 'size': len(tokens)}
+		return {'tokens': tokens, 'size': tokens.shape[1]}
 
 
 	def save(self):
@@ -63,14 +63,14 @@ class Dataset:
 
 			size = int(np.sum(documents['size'], dtype = np.uint64))
 			path = os.path.join(DATA_DIR, f'{split}.bin')
-			file = np.memmap(path, dtype = np.uint16, mode = 'w+', shape = (size,))
+			file = np.memmap(path, dtype = np.uint8, mode = 'w+', shape = (self.tokenizer.nb_layers, size))
 			i = 0
 
 			for batch_i in tqdm(range(batch_size), desc = f'Saving {split}'):
 
 				batch = documents.shard(num_shards = batch_size, index = batch_i, contiguous = True).with_format('numpy')
-				file_batch = np.concatenate(batch['tokens'])
-				file[i:i + len(file_batch)] = file_batch
-				i += len(file_batch)
+				file_batch = np.concatenate(batch['tokens'], axis = 1)
+				file[:, i:i + file_batch.shape[1]] = file_batch
+				i += file_batch.shape[1]
 
 			file.flush()

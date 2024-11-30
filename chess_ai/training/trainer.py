@@ -183,7 +183,7 @@ class Trainer():
 				x, y, strength = next(self.train_loader)
 
 				x = x.to(DEVICE, non_blocking = True)
-				y = y.to(DEVICE, non_blocking = True)
+				y = [y[:, i, :].to(DEVICE, non_blocking = True) for i in range(self.tokenizer.nb_layers)]
 				strength = strength.to(DEVICE, non_blocking = True)
 
 				with CONTEXT:
@@ -192,17 +192,28 @@ class Trainer():
 					prediction = self.model(x)
 
 					# Loss
-					loss = nn.functional.cross_entropy(
-						input = prediction.reshape(-1, prediction.shape[-1]),
-						target = y.reshape(-1),
+					losses = [nn.functional.cross_entropy(
+						input = prediction[i].reshape(-1, prediction[i].shape[-1]),
+						target = y[i].reshape(-1),
 						ignore_index = PADDING_TOKEN,
 						reduction = 'none'
-					)
+					) for i in range(self.tokenizer.nb_layers)]
+
+					loss = losses[0]
+
+					for i in range(1, len(losses)):
+						loss += losses[i]
+
 					loss = ((loss * strength.reshape(-1)).sum() / (strength.sum() + 1e-8)) / NUM_ACCUMULATIONS
 					self.loss += loss.item()
 
 					# Accuracy
-					accuracy = (prediction.argmax(dim = 2) == y).to(dtype = torch.float32)
+					accuracies = [(prediction[i].argmax(dim = 2) == y[i]).to(dtype = torch.float32) for i in range(self.tokenizer.nb_layers)]
+					accuracy = accuracies[0]
+
+					for i in range(1, len(accuracies)):
+						accuracy *= accuracies[i]
+
 					self.accuracy += (((accuracy * strength).sum() / (strength.sum() + 1e-8)) / NUM_ACCUMULATIONS).item()
 
 				# Backward pass
@@ -232,10 +243,10 @@ class Trainer():
 					for _ in range(NUM_ACCUMULATIONS):
 
 						# Get data
-						x, y, strength = next(self.val_loader)
+						x, y, strength = next(self.train_loader)
 
 						x = x.to(DEVICE, non_blocking = True)
-						y = y.to(DEVICE, non_blocking = True)
+						y = [y[:, i, :].to(DEVICE, non_blocking = True) for i in range(self.tokenizer.nb_layers)]
 						strength = strength.to(DEVICE, non_blocking = True)
 
 						with CONTEXT:
@@ -244,16 +255,27 @@ class Trainer():
 							prediction = self.model(x)
 
 							# Loss
-							loss = nn.functional.cross_entropy(
-								input = prediction.reshape(-1, prediction.shape[-1]),
-								target = y.reshape(-1),
+							losses = [nn.functional.cross_entropy(
+								input = prediction[i].reshape(-1, prediction[i].shape[-1]),
+								target = y[i].reshape(-1),
 								ignore_index = PADDING_TOKEN,
 								reduction = 'none'
-							)
+							) for i in range(self.tokenizer.nb_layers)]
+
+							loss = losses[0]
+
+							for i in range(1, len(losses)):
+								loss += losses[i]
+
 							self.val_loss += (((loss * strength.reshape(-1)).sum() / (strength.sum() + 1e-8)) / NUM_ACCUMULATIONS).item()
 
 							# Accuracy
-							accuracy = (prediction.argmax(dim = 2) == y).to(dtype = torch.float32)
+							accuracies = [(prediction[i].argmax(dim = 2) == y[i]).to(dtype = torch.float32) for i in range(self.tokenizer.nb_layers)]
+							accuracy = accuracies[0]
+
+							for i in range(1, len(accuracies)):
+								accuracy *= accuracies[i]
+
 							self.val_accuracy += (((accuracy * strength).sum() / (strength.sum() + 1e-8)) / NUM_ACCUMULATIONS).item()
 
 				# Update elo

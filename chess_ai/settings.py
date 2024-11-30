@@ -8,9 +8,9 @@ OUTPUT_DIR = 'output'
 NUM_THREADS = 16
 VAL_RATIO = 0.01
 
-CONTROLS = ['<unk>', '<pad>', '<g>', '<g/>', '<i>', '<i/>', '<m/>']
-UNKNOWN_TOKEN = 0
-PADDING_TOKEN = 1
+CONTROLS = ['<pad>', '<unk>', '<g>', '<g/>', '<i>', '<i/>', '<m/>']
+PADDING_TOKEN = 0
+UNKNOWN_TOKEN = 1
 START_GAME_TOKEN = 2
 END_GAME_TOKEN = 3
 START_INFO_TOKEN = 4
