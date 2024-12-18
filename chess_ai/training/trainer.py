@@ -208,7 +208,7 @@ class Trainer():
 					self.loss += loss.item()
 
 					# Accuracy
-					accuracies = [(prediction[i].argmax(dim = 2) == y[i]).to(dtype = torch.float32) for i in range(self.tokenizer.nb_layers)]
+					accuracies = [(prediction[i].argmax(dim = 2) == y[i]).to(dtype = torch.float32) for i in self.tokenizer.useful_layers]
 					accuracy = accuracies[0]
 
 					for i in range(1, len(accuracies)):
@@ -270,7 +270,7 @@ class Trainer():
 							self.val_loss += (((loss * strength.reshape(-1)).sum() / (strength.sum() + 1e-8)) / NUM_ACCUMULATIONS).item()
 
 							# Accuracy
-							accuracies = [(prediction[i].argmax(dim = 2) == y[i]).to(dtype = torch.float32) for i in range(self.tokenizer.nb_layers)]
+							accuracies = [(prediction[i].argmax(dim = 2) == y[i]).to(dtype = torch.float32) for i in self.tokenizer.useful_layers]
 							accuracy = accuracies[0]
 
 							for i in range(1, len(accuracies)):
