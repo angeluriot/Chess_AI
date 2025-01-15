@@ -25,7 +25,7 @@ def evaluate(model: Model, tokenizer: Tokenizer, nb_games: int, elo: int, verbos
 	nb_moves = 0
 	sampler = Sampler(model, tokenizer, 'white')
 
-	stockfish.set_elo_rating(elo)
+	#stockfish.set_elo_rating(elo)
 
 	for _ in range(nb_games // 2):
 
@@ -37,7 +37,7 @@ def evaluate(model: Model, tokenizer: Tokenizer, nb_games: int, elo: int, verbos
 
 				start = time()
 				stockfish.set_fen_position(sampler.board.fen())
-				opponent_move = stockfish.get_best_move()
+				opponent_move = stockfish.get_best_move_time(40)
 				opponent_move = sampler.board.parse_uci(opponent_move) if opponent_move is not None else None
 				opponent_average_time += time() - start
 
@@ -127,10 +127,10 @@ def estimate_elo(model: Model, tokenizer: Tokenizer, previous_elo: int | None = 
 	elo_model = max(round(elo_model), 0)
 
 	if verbose:
-		print(f'Mean opponent elos: {round(np.array(elos).mean())}                        ')
+		print(f'Mean opponent elos: {round(np.array(elos).mean()):,}                        ')
 		print(f'Wins: {nb_wins} ({nb_wins / len(results) * 100:.2f}%)')
 		print(f'Draws: {nb_draws} ({nb_draws / len(results) * 100:.2f}%)')
 		print(f'Losses: {nb_losses} ({nb_losses / len(results) * 100:.2f}%)')
-		print(f'Estimated elo: {elo_model}')
+		print(f'Estimated elo: {elo_model:,}')
 
 	return elo_model

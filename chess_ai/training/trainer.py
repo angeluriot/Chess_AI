@@ -243,7 +243,7 @@ class Trainer():
 					for _ in range(NUM_ACCUMULATIONS):
 
 						# Get data
-						x, y, strength = next(self.train_loader)
+						x, y, strength = next(self.val_loader)
 
 						x = x.to(DEVICE, non_blocking = True)
 						y = [y[:, i, :].to(DEVICE, non_blocking = True) for i in range(self.tokenizer.nb_layers)]
