@@ -227,19 +227,11 @@ I trained the model on my personal RTX 3090 GPU for ≈4 epochs using mixed prec
 	</tbody>
 </table>
 
-<p align="center">
-	<img src="resources/misc/loss.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/accuracy.png" width="750">
-</p>
-
 <br/>
 
-## 🪛 Fine-tuning
-
-I fine-tuned the model on the [**french instructions dataset**](https://github.com/angeluriot/French_instruct) I made for this project to create [**DimensionGPT-0.2B-Chat**](https://drive.google.com/drive/folders/1XxKdsR33rt6VTFAF8qwyE3uxulK7gK6m), a 0.2B language model trained to follow instructions and answer questions in french.
+<p align="center">
+	<img src="resources/misc/elo.png" width="750">
+</p>
 
 <br/>
 
