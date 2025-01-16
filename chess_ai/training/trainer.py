@@ -51,7 +51,6 @@ class Trainer():
 		}
 
 
-	# Save the models
 	def save_model(self, path: str) -> None:
 
 		if not os.path.exists(path):
@@ -61,7 +60,6 @@ class Trainer():
 		torch.save(self.optimizer.state_dict(), os.path.join(path, 'optimizer.pt'))
 
 
-	# Load the models
 	def load_model(self, path) -> None:
 
 		if not os.path.exists(path):
@@ -71,7 +69,6 @@ class Trainer():
 		self.optimizer.load_state_dict(torch.load(os.path.join(path, 'optimizer.pt'), map_location=DEVICE))
 
 
-	# Find previous session
 	def find_previous_session(self) -> None:
 
 		if os.path.exists(os.path.join(OUTPUT_DIR, 'last')):
@@ -81,7 +78,6 @@ class Trainer():
 			self.load_metrics()
 
 
-	# Print
 	def print(self) -> None:
 
 		print(f'Epochs: {self.epochs:.4f} | Steps: {self.step:,} | Tokens: {self.tokens:,} | LR: {self.learning_rate:.5f}   ||   ' \
@@ -90,7 +86,6 @@ class Trainer():
 			f'Elo: {self.elo}         ', end='\r')
 
 
-	# Save metrics
 	def save_metrics(self) -> None:
 
 		if self.time is None:
@@ -115,7 +110,6 @@ class Trainer():
 		pickle.dump(self.metrics_history, open(os.path.join(OUTPUT_DIR, 'metrics.pkl'), 'wb'))
 
 
-	# Load metrics
 	def load_metrics(self) -> None:
 
 		self.metrics_history = pickle.load(open(os.path.join(OUTPUT_DIR, 'metrics.pkl'), 'rb'))
@@ -132,7 +126,6 @@ class Trainer():
 		self.time = time.time()
 
 
-	# Update learning rate
 	def update_learning_rate(self) -> None:
 
 		if self.step < WARMUP_STEPS:
@@ -157,7 +150,6 @@ class Trainer():
 		return value_1 * METRICS_BETA + value_2 * (1.0 - METRICS_BETA)
 
 
-	# Train the model
 	def train(self) -> None:
 
 		# Training loop

@@ -3,7 +3,7 @@
 ![Release](https://img.shields.io/badge/Release-v1.0-blueviolet)
 ![Language](https://img.shields.io/badge/Language-Python-f2cb1b)
 ![Libraries](https://img.shields.io/badge/Libraries-PyTorch-00cf2c)
-![Size](https://img.shields.io/badge/Size-4.2Mo-f12222)
+![Size](https://img.shields.io/badge/Size-2.8Mo-f12222)
 ![Open Source](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)
 
 <br/>
@@ -21,7 +21,7 @@ This repository contains the code to train and test an autoregressive transforme
 # 📋 Summary
 
 * **[📋 Summary](#-summary)**
-* **[🤖 DimChess-0.3B](#-dimensiongpt)**
+* **[🤖 DimChess-0.3B](#-dimchess-0.3b)**
 	* [🏗️ Architecture](#%EF%B8%8F-architecture)
 	* [💾 Data](#-data)
 	* [🦾 Training](#-training)
@@ -222,7 +222,7 @@ I trained the model on my personal RTX 3090 GPU for ≈4 epochs using mixed prec
 		</tr>
 		<tr>
 			<td align="left">Final elo</td>
-			<td align="center">1741 ± 11</td>
+			<td align="center">1,741 ± 11</td>
 		</tr>
 	</tbody>
 </table>
@@ -237,60 +237,19 @@ I trained the model on my personal RTX 3090 GPU for ≈4 epochs using mixed prec
 
 ## 🧪 Tests
 
-Here are some examples of the model outputs:
+I tested the model against the [**Stockfish 17**](https://stockfishchess.org/) chess engine configured with the `UCI_Elo` parameter (from ≈1,300 to ≈3,200), the first 3 moves of each side were chosen randomly to create different games. Here are the results:
 
 <p align="center">
-	<img src="resources/misc/test_1.png" width="750">
+	<img src="resources/misc/performance.png" width="750">
 </p>
 
-<p align="center">
-	<img src="resources/misc/test_2.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_3.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_4.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_5.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_6.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_7.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_8.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_9.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_10.png" width="750">
-</p>
-
-<p align="center">
-	<img src="resources/misc/test_11.png" width="750">
-</p>
+Using theses results I estimated the elo of the model to be around **1,741 ± 11** but the **Stockfish UCI elo** metric is a bit unclear so I don't know to what extent it makes sense to compare it to the [**FIDE**](https://www.fide.com/), [**Lichess**](https://lichess.org/) or [**Chess.com**](https://www.chess.com/) ones.
 
 <br/>
 
 ## 🎛️ Weights
 
-The trained weights of the different models are available on [**Google Drive**](https://drive.google.com/drive/folders/1XxKdsR33rt6VTFAF8qwyE3uxulK7gK6m), you just need to:
-
-* Download the `.pt` file of the model you want to use and put it in the `models` folder
-* Download the `vocab.txt` file and put it in the `data` folder
+The trained weights of the model are available on [**Google Drive**](https://drive.google.com/drive/folders/1pybdOtp76NedkPnNyAwPLz-N5F0i2ney), you just need to download the `.pt` file of the model and put it in the `models` folder.
 
 <br/>
 
@@ -300,9 +259,9 @@ The trained weights of the different models are available on [**Google Drive**](
 * [**PyTorch**](https://pytorch.org/)
 * [**Flash Attention**](https://github.com/Dao-AILab/Flash-attention)
 * [**Datasets 🤗**](https://github.com/huggingface/datasets)
-* [**Tokenizers 🤗**](https://github.com/huggingface/tokenizers)
-* [**Unidecode**](https://pypi.org/project/Unidecode/)
-* [**Regex**](https://github.com/mrabarnett/mrab-regex)
+* [**Chess**](https://github.com/niklasf/python-chess)
+* [**Stockfish**](https://github.com/zhelyabuzhsky/stockfish)
+* [**SciPy**](https://scipy.org/)
 * [**Tqdm**](https://tqdm.github.io/)
 * [**PSUtil**](https://github.com/giampaolo/psutil)
 
@@ -318,23 +277,28 @@ $ pip install -r requirements.txt
 
 ⚠️ You way need to manually install a [**Flash Attention release**](https://github.com/Dao-AILab/flash-attention/releases) for Windows
 
+⚠️ You way need to download the [**Stockfish engine**](https://stockfishchess.org/) to make the Stockfish library work
+
 <br/>
 
 # 🦾 Training
 
-* Run the `create_data.ipynb` file to create the tokenizer and the dataset *(it may take an entire day and consume a few hundred gigabytes of disk space)*
+* Set the `STOCKFISH_PATH` constant in `chess_ai/settings.py` to the path of your Stockfish engine
+
+* Run the `create_data.ipynb` file to create the dataset
 
 * Run the `training.ipynb` file *(you can stop the training at any time and resume it later thanks to the checkpoints)*
 
-* If you don't have an overpriced 24GB GPU like me, the default settings (those used to train [**DimensionGPT**](#-dimensiongpt)) may not work for you. You can try to:
+* If you don't have an overpriced 24GB GPU like me, the default settings (those used to train [**DimChess-0.3B**](#-dimchess-0.3b)) may not work for you. You can try to:
 	* Reduce the **batch size** *(less stable and worse lowest point)*
 	* Increase the **accumulation steps** *(fix previous problems but slower)*
 	* Reduce some **architecture parameters** *(worse lowest point)*
 
 <br/>
 
-
 # ⚗️ Testing
+
+* Set the `STOCKFISH_PATH` constant in `chess_ai/settings.py` to the path of your Stockfish engine
 
 * Run the `testing.ipynb` file to use the models you downloaded or trained
 

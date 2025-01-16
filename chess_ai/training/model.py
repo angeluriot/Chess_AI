@@ -69,7 +69,6 @@ class FeedForward(Module):
 		return x
 
 
-# Model block
 class TransformerBlock(Module):
 
 	def __init__(self, **kwargs):
@@ -90,7 +89,6 @@ class TransformerBlock(Module):
 		return x
 
 
-# Model
 class Model(Module):
 
 	def __init__(self, tokenizer: Tokenizer, **kwargs):
@@ -103,7 +101,6 @@ class Model(Module):
 		self.blocks = nn.ModuleList([TransformerBlock() for _ in range(NUM_BLOCKS)])
 		self.final_norm = LayerNorm(EMBEDDING_DIM)
 		self.final_linears = nn.ModuleList([Linear(EMBEDDING_DIM, size) for size in tokenizer.layer_sizes])
-		#self.token_embedding.weight = self.final_linear.weight
 
 
 	def forward(self, input: torch.Tensor) -> list[torch.Tensor]:

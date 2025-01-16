@@ -25,7 +25,7 @@ def evaluate(model: Model, tokenizer: Tokenizer, nb_games: int, elo: int, verbos
 	nb_moves = 0
 	sampler = Sampler(model, tokenizer, 'white')
 
-	#stockfish.set_elo_rating(elo)
+	stockfish.set_elo_rating(elo)
 
 	for _ in range(nb_games // 2):
 
@@ -37,7 +37,7 @@ def evaluate(model: Model, tokenizer: Tokenizer, nb_games: int, elo: int, verbos
 
 				start = time()
 				stockfish.set_fen_position(sampler.board.fen())
-				opponent_move = stockfish.get_best_move_time(40)
+				opponent_move = stockfish.get_best_move()
 				opponent_move = sampler.board.parse_uci(opponent_move) if opponent_move is not None else None
 				opponent_average_time += time() - start
 
