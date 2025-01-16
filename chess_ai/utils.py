@@ -7,7 +7,6 @@ from sys import exit
 from chess_ai.settings import *
 
 
-# Reset the random seed
 def reset_rand() -> None:
 
 	now = dt.datetime.now()
@@ -17,7 +16,6 @@ def reset_rand() -> None:
 	torch.manual_seed(milliseconds_since_midnight)
 
 
-# Check if there is a GPU available
 def check_gpu() -> None:
 
 	if GPU_ENABLED:
