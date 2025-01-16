@@ -298,8 +298,6 @@ $ pip install -r requirements.txt
 
 # ⚗️ Testing
 
-* Set the `STOCKFISH_PATH` constant in `chess_ai/settings.py` to the path of your Stockfish engine
-
 * Run the `testing.ipynb` file to use the models you downloaded or trained
 
 <br/>
