@@ -1,0 +1,8 @@
+torch
+flash-attn
+datasets
+chess
+stockfish
+scipy
+tqdm
+psutil
