@@ -8,7 +8,7 @@
 
 <br/>
 
-This repository contains the code to train and test an autoregressive transformer model on chess games from scratch. I also used it to train the  open-source [**DimChess-0.3B**](#-dimchess-0.3b) model.
+This repository contains the code to train and test an autoregressive transformer model on chess games from scratch. I also used it to train the  open-source [**DimChess-0.3B**](#-dimchess-03b) model.
 
 <br/>
 
@@ -21,7 +21,7 @@ This repository contains the code to train and test an autoregressive transforme
 # 📋 Summary
 
 * **[📋 Summary](#-summary)**
-* **[🤖 DimChess-0.3B](#-dimchess-0.3b)**
+* **[🤖 DimChess-0.3B](#-dimchess-03b)**
 	* [🏗️ Architecture](#%EF%B8%8F-architecture)
 	* [💾 Data](#-data)
 	* [🦾 Training](#-training)
@@ -289,7 +289,7 @@ $ pip install -r requirements.txt
 
 * Run the `training.ipynb` file *(you can stop the training at any time and resume it later thanks to the checkpoints)*
 
-* If you don't have an overpriced 24GB GPU like me, the default settings (those used to train [**DimChess-0.3B**](#-dimchess-0.3b)) may not work for you. You can try to:
+* If you don't have an overpriced 24GB GPU like me, the default settings (those used to train [**DimChess-0.3B**](#-dimchess-03b)) may not work for you. You can try to:
 	* Reduce the **batch size** *(less stable and worse lowest point)*
 	* Increase the **accumulation steps** *(fix previous problems but slower)*
 	* Reduce some **architecture parameters** *(worse lowest point)*
