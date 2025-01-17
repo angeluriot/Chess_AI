@@ -243,7 +243,7 @@ I tested the model against the [**Stockfish 16**](https://stockfishchess.org/) c
 	<img src="resources/misc/performance.png" width="750">
 </p>
 
-Using theses results I estimated the elo of the model to be around **1,741 ± 11** but the **Stockfish UCI elo** metric is a bit unclear so I don't know to what extent it makes sense to compare it to the [**FIDE**](https://www.fide.com/), [**Lichess**](https://lichess.org/) or [**Chess.com**](https://www.chess.com/) ones.
+Using theses results I estimated the elo of the model to be around **1,741 (±11)** but the **Stockfish UCI elo** metric is a bit unclear so I don't know to what extent it makes sense to compare it to the [**FIDE**](https://www.fide.com/), [**Lichess**](https://lichess.org/) or [**Chess.com**](https://www.chess.com/) ones.
 
 <br/>
 
