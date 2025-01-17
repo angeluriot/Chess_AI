@@ -239,9 +239,13 @@ I trained the model on my personal RTX 3090 GPU for ≈4 epochs using mixed prec
 
 I tested the model against the [**Stockfish 16**](https://stockfishchess.org/) chess engine configured with the `UCI_Elo` parameter (from ≈1,300 to ≈3,200), the first 3 moves of each side were chosen randomly to create different games. Here are the results:
 
+<br/>
+
 <p align="center">
 	<img src="resources/misc/performance.png" width="750">
 </p>
+
+<br/>
 
 Using theses results I estimated the elo of the model to be around **1,741 (±11)** but the **Stockfish UCI elo** metric is a bit unclear so I don't know to what extent it makes sense to compare it to the [**FIDE**](https://www.fide.com/), [**Lichess**](https://lichess.org/) or [**Chess.com**](https://www.chess.com/) ones.
 
