@@ -237,7 +237,7 @@ I trained the model on my personal RTX 3090 GPU for ≈4 epochs using mixed prec
 
 ## 🧪 Tests
 
-I tested the model against the [**Stockfish 17**](https://stockfishchess.org/) chess engine configured with the `UCI_Elo` parameter (from ≈1,300 to ≈3,200), the first 3 moves of each side were chosen randomly to create different games. Here are the results:
+I tested the model against the [**Stockfish 16**](https://stockfishchess.org/) chess engine configured with the `UCI_Elo` parameter (from ≈1,300 to ≈3,200), the first 3 moves of each side were chosen randomly to create different games. Here are the results:
 
 <p align="center">
 	<img src="resources/misc/performance.png" width="750">

@@ -20,8 +20,8 @@ def evaluate(model: Model, tokenizer: Tokenizer, nb_games: int, elo: int, verbos
 	nb_wins = 0
 	nb_draws = 0
 	nb_losses = 0
-	bot_average_time = 0
-	opponent_average_time = 0
+	bot_times = []
+	opponent_times = []
 	nb_moves = 0
 	sampler = Sampler(model, tokenizer, 'white')
 
@@ -39,7 +39,7 @@ def evaluate(model: Model, tokenizer: Tokenizer, nb_games: int, elo: int, verbos
 				stockfish.set_fen_position(sampler.board.fen())
 				opponent_move = stockfish.get_best_move()
 				opponent_move = sampler.board.parse_uci(opponent_move) if opponent_move is not None else None
-				opponent_average_time += time() - start
+				opponent_times.append(time() - start)
 
 				if opponent_move is None or sampler.board.is_game_over():
 					break
@@ -48,7 +48,7 @@ def evaluate(model: Model, tokenizer: Tokenizer, nb_games: int, elo: int, verbos
 
 				start = time()
 				played = sampler.play(opponent_move, verbose = False)
-				bot_average_time += time() - start
+				bot_times.append(time() - start)
 
 				if not played:
 					break
@@ -73,8 +73,8 @@ def evaluate(model: Model, tokenizer: Tokenizer, nb_games: int, elo: int, verbos
 		print(f'Wins: {nb_wins} ({nb_wins / nb_games * 100:.2f}%)')
 		print(f'Draws: {nb_draws} ({nb_draws / nb_games * 100:.2f}%)')
 		print(f'Losses: {nb_losses} ({nb_losses / nb_games * 100:.2f}%)')
-		print(f'Bot average time: {bot_average_time / nb_moves:.2f}s')
-		print(f'Opponent average time: {opponent_average_time / nb_moves:.2f}s')
+		print(f'Bot mean time: {np.mean(bot_times[1:]):.4f}s')
+		print(f'Opponent mean time: {np.mean(opponent_times[1:]):.4f}s')
 
 	return nb_wins, nb_draws, nb_losses
 

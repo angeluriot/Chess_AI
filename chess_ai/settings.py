@@ -53,7 +53,7 @@ ELO_INTERVAL = 1_000
 
 # ============== Testing ============== #
 
-STOCKFISH_PATH = 'E:/Angel/Development/Others/stockfish_16/stockfish-windows-x86-64-avx2.exe'
+STOCKFISH_PATH = '<path to stockfish>'
 NB_RANDOM_MOVES = 3
 NB_EVAL_GAMES = 100
 
